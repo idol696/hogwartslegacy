@@ -4,11 +4,11 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class HogwartslegacyApplication {
+public class HogwartsLegacyApplication {
 
 	public static void main(String[] args) {
 
-		SpringApplication.run(HogwartslegacyApplication.class, args);
+		SpringApplication.run(HogwartsLegacyApplication.class, args);
 	}
 
 }
