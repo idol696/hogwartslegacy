@@ -1,9 +1,18 @@
 package ru.prostostudia.hogwartslegacy.models;
 
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+
 import java.util.Objects;
 
+@Entity
 public class Student {
-    private final Long id;
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
     private String name;
     private Integer age;
 
@@ -13,6 +22,7 @@ public class Student {
         this.age = age;
     }
 
+    public Student() {}
     public Long getId() {
 
         return id;

@@ -63,7 +63,7 @@ public class FacultyController {
             description = "Создает новый факультет",
             responses = {@ApiResponse(responseCode = "200", description = "Факультет создан"),
                     @ApiResponse(responseCode = "400", description = "Неправильный запрос или повторное добавление")})
-    public Long createFaculty(@RequestBody Faculty faculty) {
+    public Long addFaculty(@RequestBody Faculty faculty) {
         return facultyService.add(faculty);
     }
 
