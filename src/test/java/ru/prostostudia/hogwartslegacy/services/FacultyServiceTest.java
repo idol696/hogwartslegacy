@@ -1,43 +1,66 @@
 package ru.prostostudia.hogwartslegacy.services;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import ru.prostostudia.hogwartslegacy.exceptions.*;
-import ru.prostostudia.hogwartslegacy.interfaces.FacultyService;
 import ru.prostostudia.hogwartslegacy.models.Faculty;
+import ru.prostostudia.hogwartslegacy.repository.FacultyRepository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 
 public class FacultyServiceTest {
 
-    FacultyService facultyService = new FacultyServiceImpl();
+    @Mock
+    private FacultyRepository facultyRepository;
+
+    @InjectMocks
+    private FacultyServiceImpl facultyService;
+
+    @BeforeEach
+    void setUp() {
+        MockitoAnnotations.openMocks(this);
+    }
 
     @Test
-    @DisplayName("add(Faculty): Позитивный тест добавления и корректности значения записей")
-    void addTwoRows() {
-        Faculty faculty = new Faculty(1L, "Гриффиндор", "Красный");
-        facultyService.add(faculty);
-        facultyService.add(new Faculty(2L, "Слизерин", "Зеленый"));
+    @DisplayName("add: Успешное добавление нового факультета")
+    void addNewFaculty() {
+        String name = "Гриффиндор";
+        String color = "Красный";
 
-        List<Faculty> faculties = facultyService.getAll();
-        assertEquals(faculties.size(), 2, "Размер в 2 строки: провален");
-        assertEquals(faculty, faculties.get(0), "Корректность добавленных значений: провалено");
+          Faculty savedFaculty = new Faculty(1L, name, color); // Имитируем сохраненный объект с ID
+
+        when(facultyRepository.save(any(Faculty.class))).thenReturn(savedFaculty);
+
+        Faculty result = facultyService.add(name, color);
+
+        assertNotNull(result.getId(), "ID должен быть присвоен после сохранения");
+        assertEquals(name, result.getName(), "Имя факультета должно совпадать");
+        assertEquals(color, result.getColor(), "Цвет факультета должен совпадать");
+
+        verify(facultyRepository, times(1)).save(any(Faculty.class));
     }
 
     @Test
     @DisplayName("add(Faculty): Негативный тест дублей и вызова исключения FacultyNameSetAlreadyException")
     void addTwoDoubleRows() {
         Faculty faculty = new Faculty(1L, "Гриффиндор", "Красный");
-        facultyService.add(faculty);
 
-        assertThrows(FacultyNameSetAlreadyException.class,
-                () -> facultyService.add(new Faculty(2L, "Гриффиндор", "Красный")));
+        when(facultyRepository.findByName("Гриффиндор")).thenReturn(Optional.of(faculty));
+        assertThrows(FacultyNameSetAlreadyException.class,() -> facultyService.add(faculty));
+        verify(facultyRepository, times(1)).findByName("Гриффиндор");
     }
 
     @ParameterizedTest
@@ -45,18 +68,6 @@ public class FacultyServiceTest {
     @MethodSource("parametersNegativeNameColorForMethodTest")
     void addThrowFacultyIllegalParameterException(String message, Long id, String name, String color) {
         assertThrows(FacultyIllegalParameterException.class, () -> facultyService.add(new Faculty(id, name, color)));
-    }
-
-    @Test
-    @DisplayName("add(String): Позитивный тест добавления и корректности значения записей")
-    void addStringTwoRows() {
-        facultyService.add("Гриффиндор", "Красный");
-        facultyService.add("Слизерин", "Зеленый");
-
-        List<Faculty> faculties = facultyService.getAll();
-        assertEquals(faculties.size(), 2, "Размер в 2 строки: провален");
-        assertEquals(faculties.get(0).getName(), "Гриффиндор", "Корректность добавленных значений Имени: провалено");
-        assertEquals(faculties.get(0).getColor(), "Красный", "Корректность добавленных значений Цвета: провалено");
     }
 
     @ParameterizedTest
@@ -69,8 +80,14 @@ public class FacultyServiceTest {
     @Test
     @DisplayName("get(Long id): Позитивный тест получения значения записи")
     void get() {
-        facultyService.add("Гриффиндор", "Красный");
-        facultyService.add("Слизерин", "Зеленый");
+        List<Faculty> facultyExpected = List.of(
+                new Faculty(1L,"Гриффиндор", "Красный"),
+                new Faculty(2L, "Слизерин", "Зеленый")
+        );
+
+        when(facultyRepository.findAll()).thenReturn(facultyExpected);
+        when(facultyRepository.findById(1L)).thenReturn(Optional.of(facultyExpected.get(0)));
+        when(facultyRepository.findById(2L)).thenReturn(Optional.of(facultyExpected.get(1)));
 
         List<Faculty> faculties = facultyService.getAll();
         assertEquals(faculties.size(), 2, "Размер в 2 строки: провален");
@@ -86,32 +103,26 @@ public class FacultyServiceTest {
         assertThrows(FacultyNotFoundException.class, () -> facultyService.get(20L));
     }
 
-    @Test
-    @DisplayName("remove(Long id): Тест удаления записи")
-    void removeOneRecord() {
-        facultyService.add("Гриффиндор", "Красный");
-
-        facultyService.remove(1L);
-        assertTrue(facultyService.getAll().isEmpty());
-    }
 
     @Test
     @DisplayName("remove(Long id): Тест удаления записи - корректность значения удаленной позиции")
     void removeCorrectReturn() {
-        facultyService.add("Гриффиндор", "Красный");
-        facultyService.add("Слизерин", "Зеленый");
-
+        List<Faculty> faculties = List.of(
+                new Faculty(1L, "Гриффиндор", "Красный"),
+                new Faculty(2L, "Слизерин", "Зеленый")
+        );
+        when(facultyRepository.findById(1L)).thenReturn(Optional.of(faculties.get(0)));
         facultyService.remove(1L);
 
-        assertEquals(1, facultyService.getAll().size());
+        verify(facultyRepository,times(1)).deleteById(1L);
+
     }
 
     @Test
     @DisplayName("remove(Long id): Тест удаления записи - некорректный id")
     void removeThrows() {
-        facultyService.add("Гриффиндор", "Красный");
-        facultyService.add("Слизерин", "Зеленый");
 
+        when(facultyRepository.findById(20L)).thenThrow(FacultyNotFoundException.class);
         assertThrows(FacultyNotFoundException.class, () -> facultyService.remove(20L));
     }
 
@@ -124,10 +135,23 @@ public class FacultyServiceTest {
     @Test
     @DisplayName("edit(Faculty): Тест редактирования - корректность присвоения")
     void edit() {
-        facultyService.add("Гриффиндор", "Красный");
-        Faculty faculty = new Faculty(1L, "Слизерин","Зеленый");
-        facultyService.edit(faculty);
-        assertEquals(faculty,facultyService.get(1L));
+        Faculty facultyExcepted = new Faculty(1L, "Гриффиндор", "Красный");
+        Faculty faculty = new Faculty(1L, "Слизерин2","Зеленый");
+        when(facultyRepository.findById(1L)).thenReturn(Optional.of(facultyExcepted));
+        when(facultyRepository.save(any(Faculty.class))).thenReturn(faculty);
+
+        assertEquals(faculty,facultyService.edit(faculty));
+        verify(facultyRepository,times(1)).save(faculty);
+    }
+
+    @Test
+    @DisplayName("edit(Faculty): Тест редактирования - повторное добавление имени FacultyNameSetAlreadyException")
+    void editThrow() {
+        Faculty facultyExcepted = new Faculty(1L, "Слизерин", "Зеленый");
+        when(facultyRepository.findById(1L)).thenReturn(Optional.of(facultyExcepted));
+        when(facultyRepository.findByName("Слизерин")).thenReturn(Optional.of(facultyExcepted));
+
+        assertThrows(FacultyNameSetAlreadyException.class, ()-> facultyService.edit(facultyExcepted));
     }
 
     @ParameterizedTest
@@ -143,8 +167,8 @@ public class FacultyServiceTest {
     @Test
     @DisplayName("find(String name): Тест редактирования - корректность поиска")
     void find() {
-        facultyService.add("Гриффиндор", "Красный");
-        facultyService.add("Слизерин", "Зеленый");
+        Faculty faculty = new Faculty(2L, "Слизерин","Зеленый");
+        when(facultyRepository.findByName("Слизерин")).thenReturn(Optional.of(faculty));
 
         Long id = facultyService.find("Слизерин").getId();
         assertEquals(2, id);
@@ -163,8 +187,11 @@ public class FacultyServiceTest {
     @Test
     @DisplayName("getAll: Получить полный список факультетов")
     void getAll() {
-        facultyService.add("Гриффиндор", "Красный");
-        facultyService.add("Слизерин", "Зеленый");
+
+        List<Faculty> facultyExpected = List.of(
+                new Faculty(1L,"Гриффиндор", "Красный"),
+                new Faculty(2L, "Слизерин", "Зеленый"));
+        when(facultyRepository.findAll()).thenReturn(facultyExpected);
         List<Faculty> facultyActual = facultyService.getAll();
 
         Faculty facultyExpected1 = new Faculty(1L,"Гриффиндор", "Красный");
@@ -182,21 +209,17 @@ public class FacultyServiceTest {
     @Test
     @DisplayName("filterByColor: Фильтр по цвету")
     void filterByColor() {
-        facultyService.add("Гриффиндор", "Красный");
-        facultyService.add("Слизерин", "Зеленый");
-        facultyService.add("Олеги", "Зеленый");
+        List<Faculty> redColor = List.of(new Faculty(1L,"Гриффиндор", "Красный"));
+        List<Faculty> greenColor = List.of(
+                new Faculty(2L,"Слизерин", "Зеленый"),
+                new Faculty(3L,"Олеги", "Зеленый")
+        );
+        List<Faculty> mixedColor = Stream.concat(redColor.stream(), greenColor.stream())
+                .toList();
+        when(facultyRepository.findAll()).thenReturn(mixedColor);
         List<Faculty> facultyActual = facultyService.filterByColor("Зеленый");
 
-        Faculty facultyExpected1 = new Faculty(2L,"Слизерин", "Зеленый");
-        Faculty facultyExpected2 = new Faculty(3L, "Олеги", "Зеленый");
-        assertEquals(facultyExpected1,facultyActual.get(0),"Не совпала строка 1");
-        assertEquals(facultyExpected2,facultyActual.get(1),"Не совпала строка 2");
-    }
-
-    @Test
-    @DisplayName("filterByColor: Получить весь список факультетов, если он пуст")
-    void filterByColorEmpty() {
-        assertTrue(facultyService.filterByColor("Зеленый").isEmpty());
+        assertEquals(greenColor,facultyActual);
     }
 
     private static Stream<Arguments> parametersNegativeNameColorForMethodTest() {

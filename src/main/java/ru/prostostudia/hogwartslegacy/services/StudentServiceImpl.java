@@ -5,20 +5,25 @@ import ru.prostostudia.hogwartslegacy.exceptions.StudentIllegalParameterExceptio
 import ru.prostostudia.hogwartslegacy.exceptions.StudentNotFoundException;
 import ru.prostostudia.hogwartslegacy.interfaces.StudentService;
 import ru.prostostudia.hogwartslegacy.models.Student;
+import ru.prostostudia.hogwartslegacy.repository.StudentRepository;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.List;
+import java.util.Objects;
+
 
 @Service
 public class StudentServiceImpl implements StudentService {
-    private final Map<Long, Student> students = new HashMap<>();
-    private long counter = 0;
+    private final StudentRepository studentRepository;
+
+    public StudentServiceImpl(StudentRepository studentRepository) {
+        this.studentRepository = studentRepository;
+    }
 
     @Override
     public Student add(String name, Integer age) {
         validStudent(name, age);
-        Student student = new Student(++counter, name, age);
-        students.put(student.getId(),student);
+        Student student = new Student(null, name, age);
+        studentRepository.save(student);
         return student;
     }
 
@@ -29,55 +34,51 @@ public class StudentServiceImpl implements StudentService {
 
     @Override
     public Student get(Long id) {
-        if (students.containsKey(id)) {
-            return students.get(id);
-        }
-        throw new StudentNotFoundException();
+        return studentRepository.findById(id).orElseThrow(StudentNotFoundException::new);
     }
 
     @Override
     public void remove(Long id) {
-        if (!students.containsKey(id)) {
+        if (studentRepository.findById(id).isEmpty()) {
             throw new StudentNotFoundException();
         }
-        students.remove(id);
+        studentRepository.deleteById(id);
     }
 
     @Override
     public Student edit(Student student) {
         Long id = student.getId();
         validStudent(student.getName(), student.getAge());
-        if (!students.containsKey(id)) {
+        if (studentRepository.findById(id).isEmpty()) {
             throw new StudentNotFoundException();
         }
-        students.put(id,student);
-        return student;
+        return studentRepository.save(student);
     }
 
     @Override
     public List<Student> filterBetweenByAge(Integer ageMin, Integer ageMax) {
-        return students.values().stream()
+        return studentRepository.findAll().stream()
                 .filter(student -> student.getAge() >= ageMin && student.getAge() <= ageMax )
                 .toList();
     }
 
     @Override
     public List<Student> filterByAge(Integer age) {
-        return students.values().stream()
+        return studentRepository.findAll().stream()
                 .filter(student -> Objects.equals(student.getAge(), age ))
                 .toList();
     }
 
     @Override
     public List<Student> filterByName(String name) {
-        return students.values().stream()
+        return studentRepository.findAll().stream()
                 .filter(student -> Objects.equals(student.getName(), name))
                 .toList();
     }
 
     @Override
     public List<Student> getAll() {
-        return students.values().stream().toList();
+        return studentRepository.findAll().stream().toList();
     }
 
     private void validStudent(String name, Integer age) {
