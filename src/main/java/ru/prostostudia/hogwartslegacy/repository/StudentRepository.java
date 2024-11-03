@@ -13,6 +13,4 @@ public interface StudentRepository extends JpaRepository<Student, Long> {
 
     Optional<Student> findByName(String name);
     Optional<Student> findByAge(Integer age);
-    Optional<Student> findById(Long id);
-    void deleteById(Long id);
 }
