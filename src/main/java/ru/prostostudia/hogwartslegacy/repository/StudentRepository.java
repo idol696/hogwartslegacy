@@ -5,12 +5,12 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import ru.prostostudia.hogwartslegacy.models.Student;
 
-import java.util.Optional;
+import java.util.List;
 
 @Repository
 @NonNullApi
 public interface StudentRepository extends JpaRepository<Student, Long> {
 
-    Optional<Student> findByName(String name);
-    Optional<Student> findByAge(Integer age);
+    List<Student> findByAgeBetween(Integer ageMin, Integer ageMax);
+    List<Student> findByFacultyId(Long id);
 }

@@ -4,12 +4,12 @@ import org.springframework.stereotype.Service;
 import ru.prostostudia.hogwartslegacy.exceptions.StudentIllegalParameterException;
 import ru.prostostudia.hogwartslegacy.exceptions.StudentNotFoundException;
 import ru.prostostudia.hogwartslegacy.interfaces.StudentService;
+import ru.prostostudia.hogwartslegacy.models.Faculty;
 import ru.prostostudia.hogwartslegacy.models.Student;
 import ru.prostostudia.hogwartslegacy.repository.StudentRepository;
 
 import java.util.List;
 import java.util.Objects;
-
 
 @Service
 public class StudentServiceImpl implements StudentService {
@@ -29,12 +29,18 @@ public class StudentServiceImpl implements StudentService {
 
     @Override
     public Long add(Student student) {
-        return add(student.getName(), student.getAge()).getId();
+        return add(student.getName(), student.getAge() ).getId();
     }
 
     @Override
     public Student get(Long id) {
         return studentRepository.findById(id).orElseThrow(StudentNotFoundException::new);
+    }
+
+    @Override
+    public Faculty getStudentFaculty(Long id) {
+        Student student = studentRepository.findById(id).orElseThrow(StudentNotFoundException::new);
+        return student.getFaculty();
     }
 
     @Override
@@ -57,15 +63,18 @@ public class StudentServiceImpl implements StudentService {
 
     @Override
     public List<Student> filterBetweenByAge(Integer ageMin, Integer ageMax) {
-        return studentRepository.findAll().stream()
-                .filter(student -> student.getAge() >= ageMin && student.getAge() <= ageMax )
-                .toList();
+        return studentRepository.findByAgeBetween(ageMin, ageMax);
+    }
+
+    @Override
+    public List<Student> filterByFaculty(Long id) {
+        return studentRepository.findByFacultyId(id);
     }
 
     @Override
     public List<Student> filterByAge(Integer age) {
         return studentRepository.findAll().stream()
-                .filter(student -> Objects.equals(student.getAge(), age ))
+                .filter(student -> Objects.equals(student.getAge(), age))
                 .toList();
     }
 
@@ -82,7 +91,7 @@ public class StudentServiceImpl implements StudentService {
     }
 
     private void validStudent(String name, Integer age) {
-        if(name == null || name.isBlank()) {
+        if (name == null || name.isBlank()) {
             throw new StudentIllegalParameterException("Name");
         }
         if (age == null || age <= 0) {

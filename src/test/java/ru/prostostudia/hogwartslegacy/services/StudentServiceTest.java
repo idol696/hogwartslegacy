@@ -10,6 +10,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import ru.prostostudia.hogwartslegacy.exceptions.*;
+import ru.prostostudia.hogwartslegacy.models.Faculty;
 import ru.prostostudia.hogwartslegacy.models.Student;
 import ru.prostostudia.hogwartslegacy.repository.StudentRepository;
 
@@ -160,7 +161,7 @@ public class StudentServiceTest  {
                 new Student(1L, "Олег", 18),
                 new Student(2L, "Олеговна", 22),
                 new Student(3L, "Олеговна", 23));
-        when(studentRepository.findAll()).thenReturn(studentsExpected);
+        when(studentRepository.findByAgeBetween(18,22)).thenReturn(studentsExpected);
 
         Long id = studentService.filterBetweenByAge(18,22).get(1).getId();
         assertEquals(2, id);
@@ -179,6 +180,16 @@ public class StudentServiceTest  {
         assertEquals(studentExpected2,studentActual.get(1),"Не совпала строка 2");
     }
 
+    @Test
+    @DisplayName("getFaculty : Получить факультет студента")
+    void getFaculty() {
+        List<Student> students = List.of(
+                new Student(1L, "Олег", 18));
+        Faculty faculty = new Faculty(1L,"123","123");
+        students.get(0).setFaculty(faculty);
+
+        assertEquals(faculty, students.get(0).getFaculty());
+    }
 
     private static Stream<Arguments> parametersNegativeNameAgeForMethodTest() {
         return Stream.of(

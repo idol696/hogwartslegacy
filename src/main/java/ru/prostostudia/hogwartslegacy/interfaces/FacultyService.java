@@ -1,6 +1,7 @@
 package ru.prostostudia.hogwartslegacy.interfaces;
 
 import ru.prostostudia.hogwartslegacy.models.Faculty;
+import ru.prostostudia.hogwartslegacy.models.Student;
 
 import java.util.List;
 
@@ -13,4 +14,5 @@ public interface FacultyService {
     Faculty find(String name);
     List<Faculty> filterByColor(String color);
     List<Faculty> getAll();
+    List<Student> getStudents(Long id);
 }

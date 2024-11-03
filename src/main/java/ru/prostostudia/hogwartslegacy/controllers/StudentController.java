@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.*;
+import ru.prostostudia.hogwartslegacy.models.Faculty;
 import ru.prostostudia.hogwartslegacy.models.Student;
 import ru.prostostudia.hogwartslegacy.services.StudentServiceImpl;
 
@@ -34,6 +35,22 @@ public class StudentController {
     public Student getFindStudent(@PathVariable long id) {
         return studentService.get(id);
     }
+
+    /**
+     * @param id идентификатор студента
+     * @return возвращает Факультет, если найден, иначе 404
+     */
+
+    @GetMapping("/faculty/{id}")
+    @Operation(summary = "Факультет студента",
+            description = "Выводит информацию о факультете студента по id студента",
+            responses = {@ApiResponse(responseCode = "404", description = "Студент не найден"),
+                    @ApiResponse(responseCode = "200", description = "Студент найден")})
+    public Faculty getFacultyOfStudent(@PathVariable long id) {
+
+        return studentService.getStudentFaculty(id);
+    }
+
 
     /**
      * @param student набор параметров студента для добавления
@@ -95,7 +112,7 @@ public class StudentController {
      * то будет 404
      */
 
-    @GetMapping("/age/{ageMin}-{ageMax}")
+    @GetMapping("/age/{ageMin}/{ageMax}")
     @Operation(summary = "Поиск по студентам с диапазоном возраста",
             description = "Поиск по студентам указанного возраста с указанием минимального и максимального возраста",
             responses = {@ApiResponse(responseCode = "200", description = "Список сформирован"),

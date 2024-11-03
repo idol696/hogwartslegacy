@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.*;
 import ru.prostostudia.hogwartslegacy.models.Faculty;
+import ru.prostostudia.hogwartslegacy.models.Student;
 import ru.prostostudia.hogwartslegacy.services.FacultyServiceImpl;
 
 
@@ -92,6 +93,7 @@ public class FacultyController {
     @Operation(summary = "Удаляет факультет",
             description = "Удаляет факультет по id",
             responses = {@ApiResponse(responseCode = "404", description = "Факультет для удаления не найден"),
+                    @ApiResponse(responseCode = "409", description = "Невозможно удалить, есть студенты"),
                     @ApiResponse(responseCode = "200", description = "Факультет удален")})
     public void deleteFaculty(@PathVariable("id") long id) {
         facultyService.remove(id);
@@ -110,5 +112,19 @@ public class FacultyController {
                     @ApiResponse(responseCode = "200", description = "Факультет найден")})
     public List<Faculty> filterColor(@PathVariable("color") String color) {
         return facultyService.filterByColor(color);
+    }
+
+    /**
+     * @param id факультета для отображения всех студентов факультета
+     * @return Метод getStudents возвращает список Students (тип List<Students>), которые принадлежат факультету,
+     * при отсутствии указанных цветов выдает ошибку 404
+     */
+    @GetMapping("/students/{id}")
+    @Operation(summary = "Список студентов факультета",
+            description = "Ищет студентов по id факультета",
+            responses = {@ApiResponse(responseCode = "404", description = "Студенты факультета не найден"),
+                    @ApiResponse(responseCode = "200", description = "Студенты факультета")})
+    public List<Student> filterStudentsByFaculty(@PathVariable("id") long id) {
+        return facultyService.getStudents(id);
     }
 }
