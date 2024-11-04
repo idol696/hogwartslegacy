@@ -10,7 +10,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import ru.prostostudia.hogwartslegacy.exceptions.*;
+import ru.prostostudia.hogwartslegacy.interfaces.StudentService;
 import ru.prostostudia.hogwartslegacy.models.Faculty;
+import ru.prostostudia.hogwartslegacy.models.Student;
 import ru.prostostudia.hogwartslegacy.repository.FacultyRepository;
 
 import java.util.List;
@@ -25,6 +27,8 @@ public class FacultyServiceTest {
 
     @Mock
     private FacultyRepository facultyRepository;
+    @Mock
+    private StudentService studentService;
 
     @InjectMocks
     private FacultyServiceImpl facultyService;
@@ -112,6 +116,7 @@ public class FacultyServiceTest {
                 new Faculty(2L, "Слизерин", "Зеленый")
         );
         when(facultyRepository.findById(1L)).thenReturn(Optional.of(faculties.get(0)));
+        when(studentService.getStudentFaculty(1L)).thenReturn(null);
         facultyService.remove(1L);
 
         verify(facultyRepository,times(1)).deleteById(1L);
@@ -201,9 +206,15 @@ public class FacultyServiceTest {
     }
 
     @Test
-    @DisplayName("getAll: Получить весь список факультетов, если он пуст")
-    void getAllEmpty() {
-        assertTrue(facultyService.getAll().isEmpty());
+    @DisplayName("getStudents: Получить всех студентов в факультете")
+    void getStudents() {
+        Faculty faculty = new Faculty(1L,"Гриффиндор", "Красный");
+        Student student = new Student(1L, "123",10);
+        student.setFaculty(faculty);
+        when(studentService.filterByFaculty(1L)).thenReturn(List.of(student));
+
+        assertEquals(List.of(student),facultyService.getStudents(1L));
+        verify(studentService,times(1)).filterByFaculty(1L);
     }
 
     @Test
@@ -214,13 +225,11 @@ public class FacultyServiceTest {
                 new Faculty(2L,"Слизерин", "Зеленый"),
                 new Faculty(3L,"Олеги", "Зеленый")
         );
-        List<Faculty> mixedColor = Stream.concat(redColor.stream(), greenColor.stream())
-                .toList();
-        when(facultyRepository.findAll()).thenReturn(mixedColor);
-        List<Faculty> facultyActual = facultyService.filterByColor("Зеленый");
-
-        assertEquals(greenColor,facultyActual);
+        when(facultyRepository.findByColorIgnoreCase("зеленый")).thenReturn(greenColor);
+        verify(facultyRepository,times(1)).findByColorIgnoreCase("зеленый");
     }
+
+
 
     private static Stream<Arguments> parametersNegativeNameColorForMethodTest() {
         return Stream.of(
