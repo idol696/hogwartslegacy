@@ -220,12 +220,13 @@ public class FacultyServiceTest {
     @Test
     @DisplayName("filterByColor: Фильтр по цвету")
     void filterByColor() {
-        List<Faculty> redColor = List.of(new Faculty(1L,"Гриффиндор", "Красный"));
         List<Faculty> greenColor = List.of(
                 new Faculty(2L,"Слизерин", "Зеленый"),
                 new Faculty(3L,"Олеги", "Зеленый")
         );
         when(facultyRepository.findByColorIgnoreCase("зеленый")).thenReturn(greenColor);
+        List<Faculty> actual = facultyRepository.findByColorIgnoreCase("зеленый");
+        assertEquals(greenColor,actual);
         verify(facultyRepository,times(1)).findByColorIgnoreCase("зеленый");
     }
 
