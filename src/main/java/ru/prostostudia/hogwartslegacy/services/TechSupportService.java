@@ -44,7 +44,7 @@ public class TechSupportService {
 
 
     public void demoFill() {
-     /*   studentService.add("Иван", 18);
+        studentService.add("Иван", 18);
         studentService.add("Анна", 19);
         studentService.add("Сергей", 20);
         studentService.add("Мария", 21);
@@ -58,7 +58,7 @@ public class TechSupportService {
         facultyService.add("Забубенные","Синий");
         facultyService.add("Футанари","Оранжевый");
         facultyService.add("Хрюшечки","Розовый");
-        facultyService.add("Мегатрон Рулит","Красный"); */
+        facultyService.add("Мегатрон Рулит","Красный");
         createRandomFaculties();
     }
 

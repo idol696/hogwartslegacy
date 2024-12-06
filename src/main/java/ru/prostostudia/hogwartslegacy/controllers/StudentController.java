@@ -99,7 +99,7 @@ public class StudentController {
      */
     @GetMapping()
     @Operation(summary = "Список всех студентов",
-            responses = @ApiResponse(responseCode = "200", description = "Студент удален"))
+            responses = @ApiResponse(responseCode = "200", description = "Отображение всех студентов"))
     public List<Student> getAllStudent() {
         return studentService.getAll();
     }
