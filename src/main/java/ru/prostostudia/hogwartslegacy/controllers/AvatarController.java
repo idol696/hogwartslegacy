@@ -26,8 +26,8 @@ public class AvatarController {
     }
 
     /**
-     * @param studentId Id -студента,ккоторомубудетприкреплен аватар
-     * @return возвращает Id нового аватара,привязанному к Студенту
+     * @param studentId Id -студента,к которому будет прикреплен аватар
+     * @return возвращает Id нового аватара, привязанному к Студенту
      */
 
     @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -36,8 +36,13 @@ public class AvatarController {
             responses = {@ApiResponse(responseCode = "200", description = "Аватар создан"),
                     @ApiResponse(responseCode = "400", description = "Неправильный параметр")})
     public Long uploadAvatar(@RequestParam("studentId") long studentId, @RequestBody MultipartFile file) {
-        return avatarService.uploadAvatar(studentId,file);
+        return avatarService.uploadAvatar(studentId, file);
     }
+
+    /**
+     * @param studentId Id -студента, аватар которого мы получаем из базы данных
+     * @return возвращает массив данных аватара
+     */
 
     @GetMapping(value = "/get/from-db")
     public ResponseEntity<byte[]> getAvatarFromDb(@RequestParam("studentId") long studentId) {
@@ -53,11 +58,16 @@ public class AvatarController {
         }
     }
 
+    /**
+     * @param studentId Id -студента, аватар которого мы получаем из локального хранилища
+     * @return возвращает массив данных аватара
+     */
+
     @GetMapping(value = "/get/from-local")
     public ResponseEntity<byte[]> getAvatarFromLocal(@RequestParam("studentId") long studentId) {
 
         try {
-            Pair<MediaType,byte[]> files = avatarService.getAvatarFromLocal(studentId);
+            Pair<MediaType, byte[]> files = avatarService.getAvatarFromLocal(studentId);
             return ResponseEntity.status(HttpStatus.OK)
                     .contentType(files.getFirst())
                     .body(files.getSecond());
