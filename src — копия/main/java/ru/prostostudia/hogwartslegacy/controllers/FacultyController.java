@@ -4,9 +4,9 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.*;
+import ru.prostostudia.hogwartslegacy.interfaces.FacultyService;
 import ru.prostostudia.hogwartslegacy.models.Faculty;
 import ru.prostostudia.hogwartslegacy.models.Student;
-import ru.prostostudia.hogwartslegacy.services.FacultyServiceImpl;
 
 
 import java.util.List;
@@ -16,9 +16,9 @@ import java.util.List;
 @Tag(name = "Факультеты", description = "Факультеты студентов")
 public class FacultyController {
 
-    private final FacultyServiceImpl facultyService;
+    private final FacultyService facultyService;
 
-    public FacultyController(FacultyServiceImpl facultyService) {
+    public FacultyController(FacultyService facultyService) {
         this.facultyService = facultyService;
     }
 
@@ -31,6 +31,8 @@ public class FacultyController {
             description = "Возвращает список всех факультетов",
             responses = @ApiResponse(responseCode = "200", description = "Факультеты получены"))
     public List<Faculty> getAllFaculty() {
+        List<Faculty> faculties = facultyService.getAll();
+        System.out.println("Faculties from controller: " + faculties);
         return facultyService.getAll();
     }
 

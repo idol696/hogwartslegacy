@@ -1,6 +1,7 @@
 package ru.prostostudia.hogwartslegacy.services;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.prostostudia.hogwartslegacy.exceptions.*;
 import ru.prostostudia.hogwartslegacy.interfaces.FacultyService;
 import ru.prostostudia.hogwartslegacy.interfaces.StudentService;
@@ -74,6 +75,7 @@ public class FacultyServiceImpl implements FacultyService {
     @Override
     public List<Faculty> getAll() {
         List<Faculty> faculties = facultyRepository.findAll();
+        System.out.println("Faculties from service: " + faculties);
         return facultyRepository.findAll();
     }
 

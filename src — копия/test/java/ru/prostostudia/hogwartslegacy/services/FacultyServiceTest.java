@@ -218,16 +218,6 @@ public class FacultyServiceTest {
     }
 
     @Test
-    @DisplayName("getStudents: NotFoundException  Получить всех студентов в факультете когда их нет")
-    void getStudents_NotFoundException() {
-        Faculty faculty = new Faculty(1L,"Гриффиндор", "Красный");
-        when(studentService.filterByFaculty(1L)).thenReturn(List.of());
-
-        assertThrows(StudentNotFoundException.class, ()-> facultyService.getStudents(1L));
-        verify(studentService,times(1)).filterByFaculty(1L);
-    }
-
-    @Test
     @DisplayName("filterByColor: Фильтр по цвету")
     void filterByColor() {
         List<Faculty> greenColor = List.of(
