@@ -65,19 +65,17 @@ public class StudentController {
     }
 
     /**
-     * @param id      идентификатор студента
      * @param student студент для обновления
      * @return возвращает нового студента, если не найден по id, то ошибка 404
      * Если ошибка в параметрах (неправильный возраст, или имя) то ошибка 400
      */
-    @PutMapping("/edit/{id}")
+    @PutMapping("/edit")
     @Operation(summary = "Редактирует студента",
             description = "Редактирует студента по его id",
             responses = {@ApiResponse(responseCode = "404", description = "Студент не найден"),
                     @ApiResponse(responseCode = "400", description = "Неправильные параметры"),
                     @ApiResponse(responseCode = "200", description = "Студент изменен")})
-    public Student editStudent(@PathVariable("id") long id,
-                               @RequestBody Student student) {
+    public Student editStudent(@RequestBody Student student) {
         return studentService.edit(student);
     }
 

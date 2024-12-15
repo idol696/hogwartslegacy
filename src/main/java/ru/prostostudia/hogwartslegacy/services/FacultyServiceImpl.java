@@ -73,6 +73,7 @@ public class FacultyServiceImpl implements FacultyService {
 
     @Override
     public List<Faculty> getAll() {
+        List<Faculty> faculties = facultyRepository.findAll();
         return facultyRepository.findAll();
     }
 
