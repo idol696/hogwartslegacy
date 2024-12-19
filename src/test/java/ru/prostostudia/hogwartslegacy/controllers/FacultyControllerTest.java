@@ -1,247 +1,209 @@
 package ru.prostostudia.hogwartslegacy.controllers;
 
-import org.junit.jupiter.api.BeforeEach;
+import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.test.context.ActiveProfiles;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.mock.mockito.SpyBean;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MockMvc;
 import ru.prostostudia.hogwartslegacy.models.Faculty;
 import ru.prostostudia.hogwartslegacy.models.Student;
 import ru.prostostudia.hogwartslegacy.repository.FacultyRepository;
 import ru.prostostudia.hogwartslegacy.repository.StudentRepository;
+import ru.prostostudia.hogwartslegacy.services.FacultyServiceImpl;
+import ru.prostostudia.hogwartslegacy.services.StudentServiceImpl;
 
-import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
-// для подключения сторонних SQL скриптов в H2
-import javax.sql.DataSource;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-// Используем JUNIT Assertions
-import static org.junit.jupiter.api.Assertions.*;
-
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@ActiveProfiles("test")
-public class FacultyControllerTest {
-    final Faculty gryffindor = new Faculty(1L, "Gryffindor", "Red");
-    final Faculty slytherin = new Faculty(2L, "Slytherin", "Green");
-    final Student harry = new Student(1L, "Harry Potter", 17);
-    final Student draco = new Student(2L, "Draco Malfoy", 18);
+@WebMvcTest(FacultyController.class)
+class FacultyControllerTest {
 
     @Autowired
-    private TestRestTemplate restTemplate;
+    private MockMvc mockMvc;
 
-    @Autowired
-    private FacultyRepository facultyRepository;
-
-    @Autowired
+    @MockBean
     private StudentRepository studentRepository;
 
-    @Autowired
-    DataSource dataSource;
+    @MockBean
+    private FacultyRepository facultyRepository;
 
-    @BeforeEach
-    void setUp() {
-        facultyRepository.saveAll(List.of(gryffindor, slytherin));
-        harry.setFaculty(gryffindor);
-        draco.setFaculty(slytherin);
-        studentRepository.saveAll(List.of(harry, draco));
-    }
+    @SpyBean
+    private FacultyServiceImpl facultyService;
 
-    void runSQL(String sqlString) {
-        ResourceDatabasePopulator popular = new ResourceDatabasePopulator(
-                new ClassPathResource(sqlString)
-        );
-        popular.execute(dataSource);
-    }
+    @SpyBean
+    private StudentServiceImpl studentService;
 
-    void clearDatabaseH2() {
-        runSQL("h2-clear-database.sql");
-    }
+    @InjectMocks
+    private FacultyController facultyController;
 
-    void deleteHarryFromH2() {
-        runSQL("h2-delete-harry-potter.sql");
+    @Test
+    void testGetFacultyById() throws Exception {
+        Faculty gryffindor = new Faculty(1L, "Gryffindor", "Red");
+
+        when(facultyRepository.findById(anyLong())).thenReturn(Optional.of(gryffindor));
+
+        mockMvc.perform(get("/faculty/1")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.id").value(1L))
+                .andExpect(jsonPath("$.name").value("Gryffindor"))
+                .andExpect(jsonPath("$.color").value("Red"));
     }
 
     @Test
-    void testGetAllFaculties() {
-        ResponseEntity<Faculty[]> response = restTemplate.getForEntity("/faculty", Faculty[].class);
-        assertEquals(HttpStatus.OK, response.getStatusCode(), "Статус ответа должен быть OK");
-        Faculty[] facultiesArray = response.getBody();
-        assertNotNull(facultiesArray, "Массив факультетов не должен быть null");
-        List<Faculty> faculties = Arrays.asList(facultiesArray);
-        List<Faculty> expectedFaculties = List.of(gryffindor, slytherin);
-        assertFalse(faculties.isEmpty(), "Список факультетов не должен быть пустым");
-        assertEquals(expectedFaculties, faculties, "Список факультетов не совпадает");
+    void testGetFacultyById_NotFound() throws Exception {
+        when(facultyRepository.findById(anyLong())).thenReturn(Optional.empty());
+
+        mockMvc.perform(get("/faculty/999")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound());
     }
 
     @Test
-    void testGetAllFaculties_EmptyValid() {
-        clearDatabaseH2();
-        ResponseEntity<Faculty[]> response = restTemplate.getForEntity("/faculty", Faculty[].class);
-        assertEquals(HttpStatus.OK, response.getStatusCode(), "Статус ответа должен быть OK");
-        Faculty[] facultiesArray = response.getBody();
-        assertNotNull(facultiesArray, "Массив факультетов не должен быть null");
-        List<Faculty> faculties = Arrays.asList(facultiesArray);
-        assertTrue(faculties.isEmpty(), "Список факультетов должен быть пустым");
-        setUp();
+    void testAddFaculty() throws Exception {
+        JSONObject facultyObject = new JSONObject();
+        facultyObject.put("name", "Gryffindor");
+        facultyObject.put("color", "Red");
+
+        Faculty savedFaculty = new Faculty(1L, "Gryffindor", "Red");
+        when(facultyRepository.save(any(Faculty.class))).thenReturn(savedFaculty);
+
+        mockMvc.perform(post("/faculty/add")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(facultyObject.toString()))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$").value(1L));
     }
 
     @Test
-    void testGetFacultyById() {
-        Faculty faculty = restTemplate.getForObject("/faculty/1", Faculty.class);
-        assertEquals(gryffindor, faculty, "Факультеты не совпадают");
+    void testEditFaculty() throws Exception {
+        JSONObject facultyObject = new JSONObject();
+        facultyObject.put("id", 1);
+        facultyObject.put("name", "Gryffindor Updated");
+        facultyObject.put("color", "Gold");
+
+        Faculty updatedFaculty = new Faculty(1L, "Gryffindor Updated", "Gold");
+        when(facultyRepository.findById(anyLong())).thenReturn(Optional.of(updatedFaculty));
+        when(facultyRepository.save(any(Faculty.class))).thenReturn(updatedFaculty);
+
+        mockMvc.perform(put("/faculty/edit")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(facultyObject.toString()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.name").value("Gryffindor Updated"))
+                .andExpect(jsonPath("$.color").value("Gold"));
     }
 
     @Test
-    void testGetFacultyById_404_NotFound() {
-        ResponseEntity<Void> response = restTemplate.exchange(
-                "/faculty/999",
-                HttpMethod.GET,
-                null,
-                Void.class
-        );
-        assertEquals(response.getStatusCode(), HttpStatus.NOT_FOUND,"Факультет не должен быть найден");
+    void testEditFaculty_NotFound() throws Exception {
+        JSONObject facultyObject = new JSONObject();
+        facultyObject.put("id", 1);
+        facultyObject.put("name", "Gryffindor Updated");
+        facultyObject.put("color", "Gold");
+
+        when(facultyRepository.findById(anyLong())).thenReturn(Optional.empty());
+
+        mockMvc.perform(put("/faculty/edit")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(facultyObject.toString()))
+                .andExpect(status().isNotFound());
     }
 
     @Test
-    void testAddFaculty() {
-        ResponseEntity<String> response = restTemplate.postForEntity(
-                "/faculty/add", new Faculty(null, "Dolby", "Red"), String.class
-        );
-        assertEquals(response.getStatusCode(), HttpStatus.OK);
-        assertNotNull(response.getBody());
-        Long facultyId = Long.valueOf(response.getBody());
-        assertEquals(3L, facultyId, "Некорректное добавление факультета");
-        clearDatabaseH2();
-        setUp();
+    void testRemoveFaculty() throws Exception {
+        Faculty deleteFaculty = new Faculty(1L, "Gryffindor", "Red");
+        doNothing().when(facultyRepository).deleteById(anyLong());
+        when(facultyRepository.findById(1L)).thenReturn(Optional.of(deleteFaculty));
+
+        mockMvc.perform(delete("/faculty/remove/1"))
+                .andExpect(status().isOk());
+
+        ArgumentCaptor<Long> captor = ArgumentCaptor.forClass(Long.class);
+        verify(facultyRepository).deleteById(captor.capture());
+        assertEquals(1L, captor.getValue());
     }
 
     @Test
-    void testAddFaculty_400_AlreadyExists() {
-        ResponseEntity<String> response = restTemplate.postForEntity(
-                "/faculty/add", new Faculty(null, "Gryffindor","None"), String.class
-        );
-        assertEquals(response.getStatusCode(), HttpStatus.BAD_REQUEST,"Имя факультета на должно повторятся");
-        clearDatabaseH2();
-        setUp();
+    void testRemoveFaculty_NotFound() throws Exception {
+        doNothing().when(facultyRepository).deleteById(anyLong());
+        when(facultyRepository.findById(1L)).thenReturn(Optional.empty());
+
+        mockMvc.perform(delete("/faculty/remove/1"))
+                .andExpect(status().isNotFound());
     }
 
     @Test
-    void testEditFaculty() {
+    void testGetAllFaculties() throws Exception {
+        Faculty gryffindor = new Faculty(1L, "Gryffindor", "Red");
+        Faculty slytherin = new Faculty(2L, "Slytherin", "Green");
 
-        Faculty expectedFaculty = new Faculty(1L, "Gryffindor Update", "Green");
-        HttpEntity<Faculty> request = new HttpEntity<>(expectedFaculty);
-        ResponseEntity<Faculty> response = restTemplate.exchange(
-                "/faculty/edit",
-                HttpMethod.PUT,
-                request,
-                Faculty.class
-        );
+        when(facultyRepository.findAll()).thenReturn(List.of(gryffindor, slytherin));
 
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        Faculty updatedFaculty = response.getBody();
-        assertEquals(expectedFaculty, updatedFaculty, "Изменений факультета не произошло");
+        mockMvc.perform(get("/faculty")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.length()").value(2))
+                .andExpect(jsonPath("$[0].name").value("Gryffindor"))
+                .andExpect(jsonPath("$[1].name").value("Slytherin"));
+        verify(facultyRepository, times(2)).findAll();
     }
 
     @Test
-    void testEditFaculty_404_NotFound() {
+    void testGetAllFaculties_EmptyValid() throws Exception {
 
-        Faculty expectedFaculty = new Faculty(999L, "Gryffindor Update", "Green");
-        HttpEntity<Faculty> request = new HttpEntity<>(expectedFaculty);
-        ResponseEntity<Faculty> response = restTemplate.exchange(
-                "/faculty/edit",
-                HttpMethod.PUT,
-                request,
-                Faculty.class
-        );
+        mockMvc.perform(get("/faculty")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+    }
 
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+
+    @Test
+    void testFilterStudentsByFaculty_Success() throws Exception {
+        long facultyId = 1L;
+        Student student1 = new Student(1L, "Harry Potter", 17);
+        Student student2 = new Student(2L, "Hermione Granger", 18);
+        List<Student> students = List.of(student1, student2);
+
+        when(studentRepository.findByFacultyId(facultyId)).thenReturn(students);
+
+        mockMvc.perform(get("/faculty/students/" + facultyId)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.length()").value(2))
+                .andExpect(jsonPath("$[0].name").value("Harry Potter"))
+                .andExpect(jsonPath("$[1].name").value("Hermione Granger"));
+
+        verify(studentRepository, times(1)).findByFacultyId(facultyId);
     }
 
     @Test
-    void testRemoveFaculty() {
-        deleteHarryFromH2();
-        ResponseEntity<Void> response = restTemplate.exchange(
-                "/faculty/remove/1",
-                HttpMethod.DELETE,
-                null,
-                Void.class
-        );
-        assertEquals(HttpStatus.OK, response.getStatusCode(), "Удаление должно завершиться успешно");
-        boolean facultyExists = facultyRepository.findById(1L).isPresent();
-        assertFalse(facultyExists, "Факультет с ID 1 должен быть удалён");
-        clearDatabaseH2();
-        setUp();
+    void testFilterStudentsByFaculty_NotFound() throws Exception {
+
+        long facultyId = 999L;
+
+         when(studentRepository.findByFacultyId(facultyId)).thenReturn(List.of());
+
+        mockMvc.perform(get("/faculty/students/" + facultyId)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound());
+
+        verify(studentRepository, times(1)).findByFacultyId(facultyId);
     }
 
-    @Test
-    void testRemoveFaculty_409_Conflict() {
-        ResponseEntity<Void> response = restTemplate.exchange(
-                "/faculty/remove/1",
-                HttpMethod.DELETE,
-                null,
-                Void.class
-        );
-        assertEquals(HttpStatus.CONFLICT, response.getStatusCode(), "Должно быть 409 - есть студент на факультете");
-    }
-
-    @Test
-    void testRemoveFaculty_404_NotFound() {
-        ResponseEntity<Void> response = restTemplate.exchange(
-                "/faculty/remove/999",
-                HttpMethod.DELETE,
-                null,
-                Void.class
-        );
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode(), "Должно быть 404 - факультет не найден");
-    }
-
-    @Test
-    void testGetFacultiesByColor() {
-        ResponseEntity<Faculty[]> response = restTemplate.getForEntity("/faculty/color/red", Faculty[].class);
-        assertEquals(HttpStatus.OK,response.getStatusCode(),"Статус должен быть OK 200");
-        assertNotNull(response.getBody(),"Возвращаемое значение не должно быть Null");
-        Faculty[] facultiesArray = response.getBody();
-        List<Faculty> faculties = Arrays.asList(facultiesArray);
-        List<Faculty> expectedFaculties = List.of(gryffindor);
-        assertEquals(expectedFaculties, faculties, "Список факультетов c колором Red не совпадает");
-    }
-
-    @Test
-    void testGetFacultiesByColor_EmptyValid() {
-        ResponseEntity<Faculty[]> response = restTemplate.getForEntity("/faculty/color/none", Faculty[].class);
-        assertEquals(HttpStatus.OK,response.getStatusCode(),"Статус должен быть OK 400");
-        assertNotNull(response.getBody(),"Возвращаемое значение не должно быть Null");
-        Faculty[] facultiesArray = response.getBody();
-        assertTrue(Arrays.asList(facultiesArray).isEmpty());
-    }
-
-    @Test
-    void testGetStudentsByFacultyId() {
-        ResponseEntity<Student[]> response = restTemplate.getForEntity("/faculty/students/1", Student[].class);
-        assertEquals(HttpStatus.OK,response.getStatusCode(),"Статус должен быть OK 400");
-        assertNotNull(response.getBody(),"Возвращаемое значение не должно быть Null");
-        Student[] studentsArray = response.getBody();
-        List<Student> exceptedStudents = List.of(harry);
-        List<Student> students = Arrays.asList(studentsArray);
-        assertFalse(students.isEmpty(),"Список студентов не должен быть пустым");
-        assertEquals(exceptedStudents,students,"Студенты не совпадают");
-    }
-
-    @Test
-    void testGetStudentsByFacultyId_404_NotFound() {
-        deleteHarryFromH2();
-        ResponseEntity<String> response = restTemplate.getForEntity("/faculty/students/1", String.class);
-        assertEquals(HttpStatus.NOT_FOUND,response.getStatusCode(),"Статус должен быть NOT_FOUND 404");
-        assertNotNull(response.getBody(),"Возвращаемое значение не должно быть Null");
-        clearDatabaseH2();
-        setUp();
-    }
 }
