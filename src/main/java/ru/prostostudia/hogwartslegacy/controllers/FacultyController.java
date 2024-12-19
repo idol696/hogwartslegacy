@@ -19,10 +19,8 @@ public class FacultyController {
     private final FacultyServiceImpl facultyService;
 
     public FacultyController(FacultyServiceImpl facultyService) {
-
         this.facultyService = facultyService;
     }
-
 
     /**
      * @return список всех факультетов
@@ -86,7 +84,7 @@ public class FacultyController {
 
     /**
      * @param id факультета для удаления
-     *  404, если факультет с заданным id не был найден
+     *           404, если факультет с заданным id не был найден
      */
 
     @DeleteMapping("/remove/{id}")

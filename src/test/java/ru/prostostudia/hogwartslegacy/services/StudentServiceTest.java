@@ -21,7 +21,7 @@ import java.util.stream.Stream;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-public class StudentServiceTest  {
+public class StudentServiceTest {
 
     @Mock
     private StudentRepository studentRepository;
@@ -36,14 +36,16 @@ public class StudentServiceTest  {
 
     @Test
     @DisplayName("add(Student): Позитивный тест добавления и корректности значения записей")
-    void addTwoRows() {
-        List<Student> studentsExpected = List.of(new Student(1L, "Олег", 18),new Student(2L, "Олеговна", 22));
-        Student student = new Student(1L, "Олег", 18);
-        when(studentRepository.findAll()).thenReturn(studentsExpected);
+    void addRows() {
+        Student studentsExpected = new Student(1L, "Олег", 18);
+
+        when(studentRepository.save(any(Student.class))).thenReturn(studentsExpected);
+        studentService.add("Олег", 18);
+        when(studentRepository.findAll()).thenReturn(List.of(studentsExpected));
 
         List<Student> studentsActual = studentService.getAll();
-        assertEquals(studentsActual.size(), 2, "Размер в 2 строки: провален");
-        assertEquals(student, studentsActual.get(0), "Корректность добавленных значений: провалено");
+        assertEquals(studentsActual.size(), 1, "Размер в 1 строку: провален");
+        assertEquals(studentsExpected, studentsActual.get(0), "Корректность добавленных значений: провалено");
     }
 
     @ParameterizedTest
@@ -51,18 +53,6 @@ public class StudentServiceTest  {
     @MethodSource("parametersNegativeNameAgeForMethodTest")
     void addThrowStudentIllegalParameterException(String message, Long id, String name, Integer age) {
         assertThrows(StudentIllegalParameterException.class, () -> studentService.add(new Student(id, name, age)));
-    }
-
-    @Test
-    @DisplayName("add(String): Позитивный тест добавления и корректности значения записей")
-    void addStringTwoRows() {
-        List<Student> studentsExpected = List.of(new Student(1L, "Олег", 18),new Student(2L, "Олеговна", 22));
-        when(studentRepository.findAll()).thenReturn(studentsExpected);
-
-        List<Student> studentsActual = studentService.getAll();
-        assertEquals(studentsActual.size(), 2, "Размер в 2 строки: провален");
-        assertEquals(studentsActual.get(0).getName(), "Олег", "Корректность добавленных значений Имени: провалено");
-        assertEquals(studentsActual.get(0).getAge(), 18, "Корректность добавленных значений Возраста: провалено");
     }
 
     @ParameterizedTest
@@ -75,7 +65,7 @@ public class StudentServiceTest  {
     @Test
     @DisplayName("get(Long id): Позитивный тест получения значения записи")
     void get() {
-        List<Student> studentsExpected = List.of(new Student(1L, "Олег", 18),new Student(2L, "Олеговна", 22));
+        List<Student> studentsExpected = List.of(new Student(1L, "Олег", 18), new Student(2L, "Олеговна", 22));
         when(studentRepository.findAll()).thenReturn(studentsExpected);
         when(studentRepository.findById(1L)).thenReturn(Optional.of(studentsExpected.get(0)));
         when(studentRepository.findById(2L)).thenReturn(Optional.of(studentsExpected.get(1)));
@@ -97,13 +87,13 @@ public class StudentServiceTest  {
     @Test
     @DisplayName("remove(Long id): Тест удаления записи")
     void removeOneRecord() {
-        List<Student> studentsExpected = List.of(new Student(1L, "Олег", 18),new Student(2L, "Олеговна", 22));
+        List<Student> studentsExpected = List.of(new Student(1L, "Олег", 18), new Student(2L, "Олеговна", 22));
         when(studentRepository.findAll()).thenReturn(studentsExpected);
         when(studentRepository.findById(1L)).thenReturn(Optional.of(studentsExpected.get(0)));
 
         studentService.remove(1L);
-        verify(studentRepository,times(1)).deleteById(1L);
-        verify(studentRepository,times(1)).findById(1L);
+        verify(studentRepository, times(1)).deleteById(1L);
+        verify(studentRepository, times(1)).findById(1L);
     }
 
     @Test
@@ -118,18 +108,18 @@ public class StudentServiceTest  {
     void edit() {
         Student studentExpected = new Student(1L, "Олег", 18);
         when(studentRepository.findById(1L)).thenReturn(Optional.of(studentExpected));
-        Student studentActual = new Student(1L, "Олеговна",22);
+        Student studentActual = new Student(1L, "Олеговна", 22);
         when(studentRepository.save(argThat(f -> f.getId() == 1L))).thenReturn(studentActual);
         studentService.edit(studentActual);
-        verify(studentRepository,times(1)).save(argThat(f -> f.getId() == 1L));
-        assertEquals(studentExpected,studentService.get(1L));
+        verify(studentRepository, times(1)).save(argThat(f -> f.getId() == 1L));
+        assertEquals(studentExpected, studentService.get(1L));
     }
 
     @ParameterizedTest
     @DisplayName("edit(Student): Тест ошибок - попытка присвоить пустые значения - ошибка StudentIllegalParameterException ")
     @MethodSource("parametersNegativeNameAgeForMethodTest")
     void editThrowStudentIllegalParameterException(String message, Long id, String name, Integer age) {
-        studentService.add("1",2);
+        studentService.add("1", 2);
         Student student = new Student(1L, name, age);
 
         assertThrows(StudentIllegalParameterException.class, () -> studentService.edit(student));
@@ -138,7 +128,7 @@ public class StudentServiceTest  {
     @Test
     @DisplayName("filterByName(String name): Тест редактирования - корректность фильтра по имени")
     void filterByName() {
-        List<Student> studentsExpected = List.of(new Student(1L, "Олег", 18),new Student(2L, "Олеговна", 22));
+        List<Student> studentsExpected = List.of(new Student(1L, "Олег", 18), new Student(2L, "Олеговна", 22));
         when(studentRepository.findAll()).thenReturn(studentsExpected);
         Long id = studentService.filterByName("Олеговна").get(0).getId();
         assertEquals(2, id);
@@ -147,7 +137,7 @@ public class StudentServiceTest  {
     @Test
     @DisplayName("filterByAge(Integer age): Тест редактирования - корректность фильтра по возрасту")
     void filterByAge() {
-        List<Student> studentsExpected = List.of(new Student(1L, "Олег", 18),new Student(2L, "Олеговна", 22));
+        List<Student> studentsExpected = List.of(new Student(1L, "Олег", 18), new Student(2L, "Олеговна", 22));
         when(studentRepository.findAll()).thenReturn(studentsExpected);
 
         Long id = studentService.filterByAge(22).get(0).getId();
@@ -161,23 +151,23 @@ public class StudentServiceTest  {
                 new Student(1L, "Олег", 18),
                 new Student(2L, "Олеговна", 22),
                 new Student(3L, "Олеговна", 23));
-        when(studentRepository.findByAgeBetween(18,22)).thenReturn(studentsExpected);
+        when(studentRepository.findByAgeBetween(18, 22)).thenReturn(studentsExpected);
 
-        Long id = studentService.filterBetweenByAge(18,22).get(1).getId();
+        Long id = studentService.filterBetweenByAge(18, 22).get(1).getId();
         assertEquals(2, id);
     }
 
     @Test
     @DisplayName("getAll: Получить полный список студентов")
     void getAll() {
-        List<Student> studentsExpected = List.of(new Student(1L, "Олег", 18),new Student(2L, "Олеговна", 22));
+        List<Student> studentsExpected = List.of(new Student(1L, "Олег", 18), new Student(2L, "Олеговна", 22));
         when(studentRepository.findAll()).thenReturn(studentsExpected);
         List<Student> studentActual = studentService.getAll();
 
-        Student studentExpected1 = new Student(1L,"Олег", 18);
+        Student studentExpected1 = new Student(1L, "Олег", 18);
         Student studentExpected2 = new Student(2L, "Олеговна", 22);
-        assertEquals(studentExpected1,studentActual.get(0),"Не совпала строка 1");
-        assertEquals(studentExpected2,studentActual.get(1),"Не совпала строка 2");
+        assertEquals(studentExpected1, studentActual.get(0), "Не совпала строка 1");
+        assertEquals(studentExpected2, studentActual.get(1), "Не совпала строка 2");
     }
 
     @Test
@@ -185,7 +175,7 @@ public class StudentServiceTest  {
     void getFaculty() {
         List<Student> students = List.of(
                 new Student(1L, "Олег", 18));
-        Faculty faculty = new Faculty(1L,"123","123");
+        Faculty faculty = new Faculty(1L, "123", "123");
         students.get(0).setFaculty(faculty);
 
         assertEquals(faculty, students.get(0).getFaculty());
