@@ -23,8 +23,7 @@ public class StudentServiceImpl implements StudentService {
     public Student add(String name, Integer age) {
         validStudent(name, age);
         Student student = new Student(null, name, age);
-        studentRepository.save(student);
-        return student;
+        return studentRepository.save(student);
     }
 
     @Override
