@@ -8,8 +8,10 @@ import ru.prostostudia.hogwartslegacy.models.Faculty;
 import ru.prostostudia.hogwartslegacy.models.Student;
 import ru.prostostudia.hogwartslegacy.repository.StudentRepository;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 @Service
 public class StudentServiceImpl implements StudentService {
@@ -28,7 +30,7 @@ public class StudentServiceImpl implements StudentService {
 
     @Override
     public Long add(Student student) {
-        return add(student.getName(), student.getAge() ).getId();
+        return add(student.getName(), student.getAge()).getId();
     }
 
     @Override
@@ -96,5 +98,25 @@ public class StudentServiceImpl implements StudentService {
         if (age == null || age <= 0) {
             throw new StudentIllegalParameterException("Age");
         }
+    }
+
+    @Override
+    public int getStudentsCount() {
+        return studentRepository.getStudentsCount();
+    }
+
+    @Override
+    public int getStudentsAgeAverage() {
+        return studentRepository.getStudentsAgeAverage();
+    }
+
+    @Override
+    public List<Student> getStudentsLast5() {
+        List<Student> listStudents = studentRepository.getStudentsLast5();
+        if (listStudents.isEmpty()) {
+            throw new StudentNotFoundException();
+        }
+        listStudents.sort(Comparator.comparingLong(Student::getId));
+        return listStudents;
     }
 }

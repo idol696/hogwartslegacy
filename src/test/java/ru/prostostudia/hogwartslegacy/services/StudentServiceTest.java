@@ -14,6 +14,7 @@ import ru.prostostudia.hogwartslegacy.models.Faculty;
 import ru.prostostudia.hogwartslegacy.models.Student;
 import ru.prostostudia.hogwartslegacy.repository.StudentRepository;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -189,5 +190,57 @@ public class StudentServiceTest {
                 Arguments.of("Тест исключения:null в возрасте", 1L, "Олег", null),
                 Arguments.of("Тест исключения:0 в возрасте", 1L, "Олег", 0)
         );
+    }
+
+    @Test
+    void getStudentsCount_ReturnCorrectCount() {
+        when(studentRepository.getStudentsCount()).thenReturn(10);
+
+        int count = studentService.getStudentsCount();
+
+        assertEquals(10, count);
+        verify(studentRepository, times(1)).getStudentsCount();
+    }
+
+    @Test
+    void getStudentsAgeAverage_ReturnCorrectAverage() {
+        when(studentRepository.getStudentsAgeAverage()).thenReturn(25);
+
+        int averageAge = studentService.getStudentsAgeAverage();
+
+        assertEquals(25, averageAge);
+        verify(studentRepository, times(1)).getStudentsAgeAverage();
+    }
+
+    @Test
+    void getStudentsLast5_ReturnSortedStudents() {
+        Faculty gryffindor = new Faculty(1L,"Gryffindor","Red");
+        List<Student> students = Arrays.asList(
+                new Student(3L, "Alice", 20),
+                new Student(1L, "Bob", 22),
+                new Student(2L, "Charlie", 21)
+        );
+        Student editStudent = students.get(0);
+        editStudent.setFaculty(gryffindor);
+        students.set(0,editStudent);
+        when(studentRepository.getStudentsLast5()).thenReturn(students);
+
+        List<Student> result = studentService.getStudentsLast5();
+
+        assertEquals(3, result.size());
+        assertEquals(1L, result.get(0).getId());
+        assertEquals(2L, result.get(1).getId());
+        assertEquals(3L, result.get(2).getId());
+        verify(studentRepository, times(1)).getStudentsLast5();
+    }
+
+    @Test
+    void getStudentsLast5_ThrowExceptionIfEmpty() {
+        // Arrange
+        when(studentRepository.getStudentsLast5()).thenReturn(List.of());
+
+        // Act & Assert
+        assertThrows(StudentNotFoundException.class, () -> studentService.getStudentsLast5(),"Ожидается StudentNotFoundException");
+        verify(studentRepository, times(1)).getStudentsLast5();
     }
 }

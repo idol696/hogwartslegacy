@@ -9,12 +9,14 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import ru.prostostudia.hogwartslegacy.exceptions.StudentNotFoundException;
 import ru.prostostudia.hogwartslegacy.models.Faculty;
 import ru.prostostudia.hogwartslegacy.models.Student;
 import ru.prostostudia.hogwartslegacy.repository.FacultyRepository;
 import ru.prostostudia.hogwartslegacy.repository.StudentRepository;
 import ru.prostostudia.hogwartslegacy.services.StudentServiceImpl;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -207,5 +209,96 @@ class StudentControllerTestV2 {
                 .andExpect(jsonPath("$.color").value("Red"));
         verify(studentRepository, times(1)).findById(anyLong());
     }
+
+    @Test
+    void getStudentsCount_ReturnCount_WhenStudentsExist() throws Exception {
+
+        when(studentRepository.getStudentsCount()).thenReturn(10);
+
+        mockMvc.perform(get("/student/count")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(content().string("10"));
+
+        verify(studentRepository, times(1)).getStudentsCount();
+        verify(studentService, times(1)).getStudentsCount();
+    }
+
+    @Test
+    void getStudentsCount_ReturnNotFound_WhenNoStudentsExist() throws Exception {
+
+        when(studentRepository.getStudentsCount()).thenReturn(0);
+
+        mockMvc.perform(get("/student/count")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound())
+                .andExpect(content().string("0"));
+
+        verify(studentRepository, times(1)).getStudentsCount();
+        verify(studentService, times(1)).getStudentsCount();
+    }
+
+    @Test
+    void getStudentsAverageAge_ReturnAverage_WhenStudentsExist() throws Exception {
+
+        when(studentRepository.getStudentsAgeAverage()).thenReturn(25);
+
+        mockMvc.perform(get("/student/age-average")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(content().string("25"));
+
+        verify(studentRepository, times(1)).getStudentsAgeAverage();
+        verify(studentService, times(1)).getStudentsAgeAverage();
+    }
+
+    @Test
+    void getStudentsAverageAge_ReturnNotFound_WhenNoStudentsExist() throws Exception {
+
+        when(studentRepository.getStudentsAgeAverage()).thenReturn(0);
+
+        mockMvc.perform(get("/student/age-average")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound())
+                .andExpect(content().string("0"));
+
+        verify(studentRepository, times(1)).getStudentsAgeAverage();
+        verify(studentService, times(1)).getStudentsAgeAverage();
+    }
+
+    @Test
+    void getLast5Student_ReturnList_WhenStudentsExist() throws Exception {
+
+        Student student1 = new Student(1L, "Alice", 20);
+        Student student2 = new Student(2L, "Bob", 21);
+
+        when(studentRepository.getStudentsLast5()).thenReturn(Arrays.asList(student1, student2));
+
+        mockMvc.perform(get("/student/last")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(2))
+                .andExpect(jsonPath("$[0].id").value(1))
+                .andExpect(jsonPath("$[0].name").value("Alice"))
+                .andExpect(jsonPath("$[1].id").value(2))
+                .andExpect(jsonPath("$[1].name").value("Bob"));
+
+        verify(studentRepository, times(1)).getStudentsLast5();
+        verify(studentService, times(1)).getStudentsLast5();
+    }
+
+    @Test
+    void getLast5Student_ThrowException_WhenNoStudentsExist() throws Exception {
+
+        when(studentRepository.getStudentsLast5()).thenReturn(List.of());
+
+        mockMvc.perform(get("/student/last")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound());
+
+        verify(studentRepository, times(1)).getStudentsLast5();
+        verify(studentService, times(1)).getStudentsLast5();
+    }
 }
+
 
