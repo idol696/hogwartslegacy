@@ -14,6 +14,8 @@ import ru.prostostudia.hogwartslegacy.exceptions.AvatarNotFoundException;
 import ru.prostostudia.hogwartslegacy.models.Avatar;
 import ru.prostostudia.hogwartslegacy.services.AvatarServiceImpl;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/avatar")
 @Tag(name = "Аватарки", description = "Наборы аватаров")
@@ -76,4 +78,25 @@ public class AvatarController {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, ex.getMessage());
         }
     }
+
+    /**
+     * @param page Номер страницы (начиная с 0)
+     * @param size Размер страницы (количество записей на странице)
+     * @return Список аватаров с указанной страницы
+     */
+    @GetMapping("/all")
+    @Operation(summary = "Получить все аватары с пагинацией",
+            description = "Позволяет получить аватары с указанием номера страницы и размера страницы",
+            responses = @ApiResponse(responseCode = "200", description = "Список аватаров успешно получен"))
+    public ResponseEntity<List<Avatar>> getAllAvatarsWithPagination(
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size) {
+
+        List<Avatar> avatars = avatarService.getAllAvatars(page, size);
+        if (avatars.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(avatars);
+    }
+
 }
