@@ -121,7 +121,7 @@ public class AvatarController {
         StringBuilder htmlBuilder = new StringBuilder();
         htmlBuilder.append("<!DOCTYPE html>");
         htmlBuilder.append("<html lang='ru'>");
-        htmlBuilder.append("<head><title>Аватары студентов</title></head>");
+        htmlBuilder.append("<head><title>Аватары студентов</title><meta charset=\"utf-8\"></head>");
         htmlBuilder.append("<body>");
 
         for (Avatar avatar : avatars) {
