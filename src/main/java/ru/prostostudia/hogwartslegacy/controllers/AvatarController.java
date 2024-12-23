@@ -14,6 +14,7 @@ import ru.prostostudia.hogwartslegacy.exceptions.AvatarNotFoundException;
 import ru.prostostudia.hogwartslegacy.models.Avatar;
 import ru.prostostudia.hogwartslegacy.services.AvatarServiceImpl;
 
+import java.util.Base64;
 import java.util.List;
 
 @RestController
@@ -99,4 +100,42 @@ public class AvatarController {
         return ResponseEntity.ok(avatars);
     }
 
+    /**
+     * @param page Номер страницы (начиная с 0)
+     * @param size Размер страницы (количество записей на странице)
+     * @return HTML-страница с изображениями аватаров
+     */
+    @GetMapping("/all/html")
+    @Operation(summary = "Получить все аватары с пагинацией в HTML",
+            description = "Возвращает HTML-страницу с изображениями аватаров",
+            responses = @ApiResponse(responseCode = "200", description = "HTML успешно сформирован"))
+    public ResponseEntity<String> getAllAvatarsAsHtml(
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size) {
+
+        List<Avatar> avatars = avatarService.getAllAvatars(page, size);
+        if (avatars.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+
+        StringBuilder htmlBuilder = new StringBuilder();
+        htmlBuilder.append("<!DOCTYPE html>");
+        htmlBuilder.append("<html lang='ru'>");
+        htmlBuilder.append("<head><title>Аватары студентов</title></head>");
+        htmlBuilder.append("<body>");
+
+        for (Avatar avatar : avatars) {
+            String base64Image = Base64.getEncoder().encodeToString(avatar.getData());
+            String imgTag = "<img src='data:" + avatar.getMediaType() + ";base64," + base64Image + "' alt='Avatar'/>";
+            htmlBuilder.append(imgTag);
+            htmlBuilder.append("<br>");
+        }
+
+        htmlBuilder.append("</body>");
+        htmlBuilder.append("</html>");
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.TEXT_HTML)
+                .body(htmlBuilder.toString());
+    }
 }
