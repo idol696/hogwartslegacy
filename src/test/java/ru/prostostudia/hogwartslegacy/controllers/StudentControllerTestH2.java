@@ -1,4 +1,4 @@
-package ru.prostostudia.hogwartslegacy.controllers.old_version;
+package ru.prostostudia.hogwartslegacy.controllers;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -25,7 +25,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
-public class StudentControllerTest {
+public class StudentControllerTestH2 {
 
     final Student harry = new Student(1L, "Harry Potter", 16);
     final Student draco = new Student(2L, "Draco Malfoy", 18);
