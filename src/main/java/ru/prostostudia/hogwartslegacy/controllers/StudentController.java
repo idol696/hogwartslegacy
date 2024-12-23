@@ -3,6 +3,8 @@ package ru.prostostudia.hogwartslegacy.controllers;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.prostostudia.hogwartslegacy.models.Faculty;
 import ru.prostostudia.hogwartslegacy.models.Student;
@@ -133,5 +135,54 @@ public class StudentController {
                     @ApiResponse(responseCode = "404", description = "Нет студентов указанного возраста")})
     public List<Student> getStudentsBetweenByAge(@PathVariable("age") int age) {
         return studentService.filterByAge(age);
+    }
+
+    /**
+     * @return возвращает всех студентов университета, если студентов нет
+     * то будет 404
+     */
+
+    @GetMapping("/count")
+    @Operation(summary = "Количество студентов",
+            description = "Возвращает количество студентов",
+            responses = {@ApiResponse(responseCode = "200", description = "Список сформирован"),
+                    @ApiResponse(responseCode = "404", description = "Нет студентов в школе")})
+    public ResponseEntity<Integer> getStudentsCount() {
+        int count = studentService.getStudentsCount();
+        if (count > 0) {
+            return ResponseEntity.ok(count);
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(0);
+        }
+    }
+
+    /**
+     * @return возвращает всех студентов университета, если студентов нет
+     * то будет 404
+     */
+
+    @GetMapping("/age-average")
+    @Operation(summary = "Средний возраст студентов",
+            description = "Возвращает средний возраст студентов",
+            responses = {@ApiResponse(responseCode = "200", description = "Список сформирован"),
+                    @ApiResponse(responseCode = "404", description = "Нет студентов в школе")})
+    public ResponseEntity<Integer> getStudentsAverageAge() {
+        int count = studentService.getStudentsAgeAverage();
+        if (count > 0) {
+            return ResponseEntity.ok(count);
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(0);
+        }
+    }
+
+    /**
+     * @return возвращает список студентов
+     */
+
+    @GetMapping("/last")
+    @Operation(summary = "Список недавно добавленных пяти студентов",
+            responses = @ApiResponse(responseCode = "200", description = "Отображение пяти студентов"))
+    public List<Student> getLast5Student() {
+        return studentService.getStudentsLast5();
     }
 }

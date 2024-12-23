@@ -1,6 +1,8 @@
 package ru.prostostudia.hogwartslegacy.services;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.util.Pair;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
@@ -16,6 +18,7 @@ import ru.prostostudia.hogwartslegacy.repository.StudentRepository;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 
 @Service
 public class AvatarServiceImpl implements AvatarService {
@@ -95,5 +98,9 @@ public class AvatarServiceImpl implements AvatarService {
         return path;
     }
 
-
+    @Transactional(readOnly = true)
+    public List<Avatar> getAllAvatars(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return avatarRepository.findAll(pageable).getContent();
+    }
 }

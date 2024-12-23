@@ -1,4 +1,4 @@
-package ru.prostostudia.hogwartslegacy.controllers;
+package ru.prostostudia.hogwartslegacy.controllers.old_version;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
