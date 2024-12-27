@@ -1,5 +1,7 @@
 package ru.prostostudia.hogwartslegacy.services;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import ru.prostostudia.hogwartslegacy.exceptions.StudentIllegalParameterException;
 import ru.prostostudia.hogwartslegacy.exceptions.StudentNotFoundException;
@@ -11,10 +13,11 @@ import ru.prostostudia.hogwartslegacy.repository.StudentRepository;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 
 @Service
 public class StudentServiceImpl implements StudentService {
+    private static final Logger logger = LoggerFactory.getLogger(StudentServiceImpl.class);
+
     private final StudentRepository studentRepository;
 
     public StudentServiceImpl(StudentRepository studentRepository) {
@@ -23,100 +26,148 @@ public class StudentServiceImpl implements StudentService {
 
     @Override
     public Student add(String name, Integer age) {
+        logger.info("Attempting to add a student with name: {} and age: {}", name, age);
         validStudent(name, age);
         Student student = new Student(null, name, age);
-        return studentRepository.save(student);
+        Student savedStudent = studentRepository.save(student);
+        logger.debug("Student saved: {}", savedStudent);
+        return savedStudent;
     }
 
     @Override
     public Long add(Student student) {
-        return add(student.getName(), student.getAge()).getId();
+        logger.info("Attempting to add a student: {}", student);
+        Long id = add(student.getName(), student.getAge()).getId();
+        logger.debug("Student added with ID: {}", id);
+        return id;
     }
 
     @Override
     public Student get(Long id) {
-        return studentRepository.findById(id).orElseThrow(StudentNotFoundException::new);
+        logger.info("Fetching student by ID: {}", id);
+        return studentRepository.findById(id).orElseThrow(() -> {
+            logger.error("Student with ID {} not found", id);
+            return new StudentNotFoundException();
+        });
     }
 
     @Override
     public Faculty getStudentFaculty(Long id) {
-        Student student = studentRepository.findById(id).orElseThrow(StudentNotFoundException::new);
+        logger.info("Fetching faculty for student ID: {}", id);
+        Student student = studentRepository.findById(id).orElseThrow(() -> {
+            logger.error("Student with ID {} not found for faculty retrieval", id);
+            return new StudentNotFoundException();
+        });
+        logger.debug("Faculty retrieved: {}", student.getFaculty());
         return student.getFaculty();
     }
 
     @Override
     public void remove(Long id) {
+        logger.info("Attempting to remove student with ID: {}", id);
         if (studentRepository.findById(id).isEmpty()) {
+            logger.error("Student with ID {} not found for removal", id);
             throw new StudentNotFoundException();
         }
         studentRepository.deleteById(id);
+        logger.debug("Student with ID {} successfully removed", id);
     }
 
     @Override
     public Student edit(Student student) {
-        Long id = student.getId();
+        logger.info("Attempting to edit student: {}", student);
         validStudent(student.getName(), student.getAge());
-        if (studentRepository.findById(id).isEmpty()) {
+        if (studentRepository.findById(student.getId()).isEmpty()) {
+            logger.error("Student with ID {} not found for editing", student.getId());
             throw new StudentNotFoundException();
         }
-        return studentRepository.save(student);
+        Student updatedStudent = studentRepository.save(student);
+        logger.debug("Student updated: {}", updatedStudent);
+        return updatedStudent;
     }
 
     @Override
     public List<Student> filterBetweenByAge(Integer ageMin, Integer ageMax) {
-        return studentRepository.findByAgeBetween(ageMin, ageMax);
+        logger.info("Filtering students between ages {} and {}", ageMin, ageMax);
+        List<Student> students = studentRepository.findByAgeBetween(ageMin, ageMax);
+        logger.debug("Students found: {}", students);
+        return students;
     }
 
     @Override
     public List<Student> filterByFaculty(Long id) {
-        return studentRepository.findByFacultyId(id);
+        logger.info("Filtering students by faculty ID: {}", id);
+        List<Student> students = studentRepository.findByFacultyId(id);
+        logger.debug("Students found: {}", students);
+        return students;
     }
 
     @Override
     public List<Student> filterByAge(Integer age) {
-        return studentRepository.findAll().stream()
+        logger.info("Filtering students by age: {}", age);
+        List<Student> students = studentRepository.findAll().stream()
                 .filter(student -> Objects.equals(student.getAge(), age))
                 .toList();
+        logger.debug("Students found: {}", students);
+        return students;
     }
 
     @Override
     public List<Student> filterByName(String name) {
-        return studentRepository.findAll().stream()
+        logger.info("Filtering students by name: {}", name);
+        List<Student> students = studentRepository.findAll().stream()
                 .filter(student -> Objects.equals(student.getName(), name))
                 .toList();
+        logger.debug("Students found: {}", students);
+        return students;
     }
 
     @Override
     public List<Student> getAll() {
-        return studentRepository.findAll().stream().toList();
+        logger.info("Fetching all students");
+        List<Student> students = studentRepository.findAll();
+        logger.debug("All students retrieved: {}", students);
+        return students;
     }
 
     private void validStudent(String name, Integer age) {
+        logger.debug("Validating student with name: {} and age: {}", name, age);
         if (name == null || name.isBlank()) {
+            logger.error("Validation failed for student: Name is invalid");
             throw new StudentIllegalParameterException("Name");
         }
         if (age == null || age <= 0) {
+            logger.error("Validation failed for student: Age is invalid");
             throw new StudentIllegalParameterException("Age");
         }
     }
 
     @Override
     public int getStudentsCount() {
-        return studentRepository.getStudentsCount();
+        logger.info("Fetching total count of students");
+        int count = studentRepository.getStudentsCount();
+        logger.debug("Total students count: {}", count);
+        return count;
     }
 
     @Override
     public int getStudentsAgeAverage() {
-        return studentRepository.getStudentsAgeAverage();
+        logger.info("Fetching average age of students");
+        int avgAge = studentRepository.getStudentsAgeAverage();
+        logger.debug("Average age calculated: {}", avgAge);
+        return avgAge;
     }
 
     @Override
     public List<Student> getStudentsLast5() {
-        List<Student> listStudents = studentRepository.getStudentsLast5();
-        if (listStudents.isEmpty()) {
+        logger.info("Fetching last 5 students");
+        List<Student> students = studentRepository.getStudentsLast5();
+        if (students.isEmpty()) {
+            logger.error("No students found for the last 5 query");
             throw new StudentNotFoundException();
         }
-        listStudents.sort(Comparator.comparingLong(Student::getId));
-        return listStudents;
+        students.sort(Comparator.comparingLong(Student::getId));
+        logger.debug("Last 5 students sorted: {}", students);
+        return students;
     }
 }

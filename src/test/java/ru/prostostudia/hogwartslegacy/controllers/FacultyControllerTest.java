@@ -160,7 +160,7 @@ class FacultyControllerTest {
                 .andExpect(jsonPath("$.length()").value(2))
                 .andExpect(jsonPath("$[0].name").value("Gryffindor"))
                 .andExpect(jsonPath("$[1].name").value("Slytherin"));
-        verify(facultyRepository, times(2)).findAll();
+        verify(facultyRepository, times(1)).findAll();
     }
 
     @Test
