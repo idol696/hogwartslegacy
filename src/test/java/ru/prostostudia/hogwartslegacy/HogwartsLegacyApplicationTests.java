@@ -6,6 +6,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import ru.prostostudia.hogwartslegacy.controllers.FacultyController;
 import ru.prostostudia.hogwartslegacy.controllers.StudentController;
+
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 

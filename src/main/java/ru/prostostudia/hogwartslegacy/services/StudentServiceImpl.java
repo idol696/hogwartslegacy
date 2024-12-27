@@ -13,7 +13,6 @@ import ru.prostostudia.hogwartslegacy.repository.StudentRepository;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 
 @Service
 public class StudentServiceImpl implements StudentService {
