@@ -147,4 +147,25 @@ public class FacultyServiceImpl implements FacultyService {
             throw new FacultyIllegalParameterException("Color");
         }
     }
+
+    @Override
+    public String getLongestFacultyName() {
+        logger.info("Method getLongestFacultyName invoked to find the faculty with the longest name.");
+
+        List<Faculty> faculties = getAll();
+        if (faculties.isEmpty()) {
+            logger.warn("The faculty list is empty. Returning an empty string.");
+            return "";
+        }
+
+        logger.debug("Fetched faculty list: {}", faculties);
+
+        String longestName = faculties.stream()
+                .map(Faculty::getName)
+                .max((name1, name2) -> Integer.compare(name1.length(), name2.length()))
+                .orElse("");
+
+        logger.info("Longest faculty name found: {}", longestName);
+        return longestName;
+    }
 }

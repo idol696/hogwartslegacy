@@ -240,8 +240,6 @@ public class FacultyServiceTest {
         verify(facultyRepository,times(1)).findByColorIgnoreCase("зеленый");
     }
 
-
-
     private static Stream<Arguments> parametersNegativeNameColorForMethodTest() {
         return Stream.of(
                 Arguments.of("Тест исключения:Всё пустое", 1L, "", ""),
@@ -249,5 +247,28 @@ public class FacultyServiceTest {
                 Arguments.of("Тест исключения:null в имени", 1L, null, "Красный"),
                 Arguments.of("Тест исключения:null в цвете", 1L, "Виталий", null)
         );
+    }
+
+    @Test
+    @DisplayName("getLongestFacultyName: Самое длинное имя факультета")
+    void getLongestFacultyName() {
+        List<Faculty> faculties = List.of(
+                new Faculty(2L,"Слизерин", "Зеленый"),
+                new Faculty(3L,"Олеги Валентиновичи", "Зеленый")
+        );
+        when(facultyRepository.findAll()).thenReturn(faculties);
+        String actual = facultyService.getLongestFacultyName();
+        assertEquals("Олеги Валентиновичи",actual);
+        verify(facultyRepository,times(1)).findAll();
+    }
+
+    @Test
+    @DisplayName("getLongestFacultyName: ЕслиФакультетов нет - Самое длинное имя факультета")
+    void getLongestFacultyName_IsEmpty() {
+        List<Faculty> faculties = List.of();
+        when(facultyRepository.findAll()).thenReturn(faculties);
+        String actual = facultyService.getLongestFacultyName();
+        assertEquals("",actual);
+        verify(facultyRepository,times(1)).findAll();
     }
 }

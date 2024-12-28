@@ -258,7 +258,7 @@ class StudentControllerTest {
 
         mockMvc.perform(get("/student/age-average")
                         .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isNotFound())
+                .andExpect(status().isOk())
                 .andExpect(content().string("0"));
 
         verify(studentRepository, times(1)).getStudentsAgeAverage();
@@ -297,6 +297,70 @@ class StudentControllerTest {
 
         verify(studentRepository, times(1)).getStudentsLast5();
         verify(studentService, times(1)).getStudentsLast5();
+    }
+
+    @Test
+    void getStudentsStartNameA_ReturnList_WhenStudentsExist() throws Exception {
+
+        Student student1 = new Student(1L, "Alice", 20);
+        Student student2 = new Student(2L, "Алиса", 21);
+
+        when(studentRepository.findAll()).thenReturn(Arrays.asList(student1, student2));
+
+        mockMvc.perform(get("/student/students-names-a")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(2))
+                .andExpect(jsonPath("$[0]").value("ALICE"))
+                .andExpect(jsonPath("$[1]").value("АЛИСА"));
+
+        verify(studentRepository, times(1)).findAll();
+        verify(studentService, times(1)).getStudentsStartNameA();
+    }
+
+    @Test
+    void getStudentsStartNameA_NotFound() throws Exception {
+
+        when(studentRepository.findAll()).thenReturn(List.of());
+
+        mockMvc.perform(get("/student/students-names-a")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound());
+
+        verify(studentRepository, times(1)).findAll();
+        verify(studentService, times(1)).getStudentsStartNameA();
+    }
+
+    @Test
+    void getStudentAgeAverageStream_ReturnInt_AverageAge() throws Exception {
+
+        Student student1 = new Student(1L, "Alice", 20);
+        Student student2 = new Student(2L, "Алиса", 30);
+
+        when(studentRepository.findAll()).thenReturn(Arrays.asList(student1, student2));
+
+        mockMvc.perform(get("/student/average-age-stream")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").value(25));
+
+        verify(studentRepository, times(1)).findAll();
+        verify(studentService, times(1)).getStudentAgeAverageStream();
+    }
+
+    @Test
+    void getStudentAgeAverageStream_ReturnInt_Zero() throws Exception {
+
+
+        when(studentRepository.findAll()).thenReturn(List.of());
+
+        mockMvc.perform(get("/student/average-age-stream")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").value(0));
+
+        verify(studentRepository, times(1)).findAll();
+        verify(studentService, times(1)).getStudentAgeAverageStream();
     }
 }
 

@@ -20,4 +20,8 @@ public interface StudentService {
     int getStudentsCount();
     int getStudentsAgeAverage();
     List<Student> getStudentsLast5();
+
+    // Stream HomeWork
+    List<String> getStudentsStartNameA();
+    int getStudentAgeAverageStream();
 }

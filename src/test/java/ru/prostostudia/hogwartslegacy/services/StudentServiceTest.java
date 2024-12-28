@@ -243,4 +243,41 @@ public class StudentServiceTest {
         assertThrows(StudentNotFoundException.class, () -> studentService.getStudentsLast5(),"Ожидается StudentNotFoundException");
         verify(studentRepository, times(1)).getStudentsLast5();
     }
+
+    @Test
+    void getStudentsStartNameA_ReturnListOf_A_Name() {
+
+        when(studentRepository.findAll()).thenReturn(List.of(new Student(3L,"Alice",20)));
+
+        assertEquals("ALICE",studentService.getStudentsStartNameA().get(0),"Ожидается ALICE");
+        verify(studentRepository, times(1)).findAll();
+    }
+
+    @Test
+    void getStudentsStartNameA_ReturnListOf_A_Name_Cyrillic() {
+
+        when(studentRepository.findAll()).thenReturn(List.of(new Student(3L,"Алиса Селезнёва",20)));
+
+        assertEquals("АЛИСА СЕЛЕЗНЁВА",studentService.getStudentsStartNameA().get(0),"Ожидается АЛИСА СЕЛЕЗНЁВА");
+        verify(studentRepository, times(1)).findAll();
+    }
+
+    @Test
+    void getStudentsStartNameA_ThrowExceptionIfEmpty() {
+
+        when(studentRepository.findAll()).thenReturn(List.of());
+
+        assertThrows(StudentNotFoundException.class, () -> studentService.getStudentsStartNameA(),"Ожидается StudentNotFoundException");
+        verify(studentRepository, times(1)).findAll();
+    }
+
+    @Test
+    void getStudentsAgeAverageStream_ReturnCorrectAverage() {
+        when(studentRepository.findAll()).thenReturn(List.of(new Student(3L,"Алиса Селезнёва",20)));
+
+        int averageAge = studentService.getStudentAgeAverageStream();
+
+        assertEquals(20, averageAge);
+        verify(studentRepository, times(1)).findAll();
+    }
 }
