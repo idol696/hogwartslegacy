@@ -2,9 +2,11 @@ package ru.prostostudia.hogwartslegacy.controllers;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.beans.factory.annotation.Autowired;
+import ru.prostostudia.hogwartslegacy.services.InfoServiceImpl;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -15,6 +17,9 @@ class InfoControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
+
+    @SpyBean
+    private InfoServiceImpl infoService;
 
     @Test
     void testCalculateSum() throws Exception {

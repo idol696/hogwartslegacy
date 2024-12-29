@@ -272,12 +272,20 @@ public class StudentServiceTest {
     }
 
     @Test
-    void getStudentsAgeAverageStream_ReturnCorrectAverage() {
+    void getStudentAgeAverage_ReturnCorrectAverage() {
         when(studentRepository.findAll()).thenReturn(List.of(new Student(3L,"Алиса Селезнёва",20)));
 
-        int averageAge = studentService.getStudentAgeAverageStream();
+        int averageAge = studentService.getStudentAgeAverage();
 
         assertEquals(20, averageAge);
+        verify(studentRepository, times(1)).findAll();
+    }
+
+    @Test
+    void getStudentAgeAverage_StudentNotFound() {
+        when(studentRepository.findAll()).thenReturn(List.of());
+
+        assertThrows(StudentNotFoundException.class,() -> studentService.getStudentAgeAverage());
         verify(studentRepository, times(1)).findAll();
     }
 }

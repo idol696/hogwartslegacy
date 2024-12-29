@@ -5,14 +5,19 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.stream.Stream;
+import ru.prostostudia.hogwartslegacy.interfaces.InfoService;
 
 @RestController
 public class InfoController {
 
     @Value("${server.port}")
     private String serverPort;
+
+    private final InfoService infoService;
+
+    public InfoController(InfoService infoService) {
+        this.infoService = infoService;
+    }
 
     /**
      * Эндпоинт для получения текущего порта приложения.
@@ -43,9 +48,6 @@ public class InfoController {
             description = "Вычисляет сумму первых 1 000 000 чисел с использованием оптимизации",
             responses = @ApiResponse(responseCode = "200", description = "Сумма успешно вычислена"))
     public int calculateSum() {
-        return Stream.iterate(1, a -> a + 1)
-                .limit(1_000_000)
-                .parallel()
-                .reduce(0, Integer::sum);
+        return infoService.getCalculateSum();
     }
 }
