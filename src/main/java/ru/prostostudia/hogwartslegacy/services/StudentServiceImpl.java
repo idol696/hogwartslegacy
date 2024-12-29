@@ -170,4 +170,44 @@ public class StudentServiceImpl implements StudentService {
         logger.debug("Last 5 students sorted: {}", students);
         return students;
     }
+
+    @Override
+    public List<String> getStudentsStartNameA() {
+        logger.info("Method getStudentsStartNameA invoked to fetch students whose names start with 'A' or 'А(Cyrillic)'.");
+
+        List<Student> students = getAll();
+        if (students.isEmpty()) {
+            logger.error("The student list is empty. Throwing StudentNotFoundException.");
+            throw new StudentNotFoundException();
+        }
+
+        logger.debug("Fetched student list: {}", students);
+
+        List<String> result = students.stream()
+                .map(Student::getName)
+                .filter(name -> name.startsWith("А") || name.startsWith("A")) // Support for Cyrillic and Latin 'A'
+                .map(String::toUpperCase)
+                .sorted()
+                .toList();
+
+        logger.info("Processing result: {}", result);
+        return result;
+    }
+
+    @Override
+    public int getStudentAgeAverageStream() {
+        logger.info("Method getStudentAgeAverageStream invoked to calculate the average age of students.");
+
+        double averageAge = studentRepository.findAll().stream()
+                .mapToInt(Student::getAge)
+                .average()
+                .orElse(0);
+
+        if (averageAge == 0) {
+            logger.warn("Average age is 0. It is likely that there are no students in the database.");
+        }
+
+        logger.debug("Calculated average age of students: {}", averageAge);
+        return (int) averageAge;
+    }
 }

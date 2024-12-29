@@ -206,4 +206,17 @@ class FacultyControllerTest {
         verify(studentRepository, times(1)).findByFacultyId(facultyId);
     }
 
+    @Test
+    void getLongestFacultyName() throws Exception {
+        Faculty gryffindor = new Faculty(1L, "Gryffindor", "Red");
+        Faculty slytherin = new Faculty(2L, "Slytherin Cat Dog Love", "Green");
+
+        when(facultyRepository.findAll()).thenReturn(List.of(gryffindor, slytherin));
+
+        mockMvc.perform(get("/faculty/longest-faculty-name")
+                        .contentType(MediaType.TEXT_PLAIN))
+                .andExpect(status().isOk())
+                .andExpect(content().string("Slytherin Cat Dog Love"));
+        verify(facultyRepository, times(1)).findAll();
+    }
 }

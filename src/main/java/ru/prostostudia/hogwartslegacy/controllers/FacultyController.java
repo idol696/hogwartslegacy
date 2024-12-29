@@ -125,4 +125,17 @@ public class FacultyController {
     public List<Student> filterStudentsByFaculty(@PathVariable("id") long id) {
         return facultyService.getStudents(id);
     }
+
+    /**
+     * Возвращает самое длинное название факультета.
+     *
+     * @return название факультета с наибольшей длиной, иначе ошибка 404
+     */
+    @GetMapping("/longest-faculty-name")
+    @Operation(summary = "Самое длинное название факультета",
+            description = "Возвращает самое длинное название факультета",
+            responses = @ApiResponse(responseCode = "200", description = "Название факультета"))
+    public String getLongestFacultyName() {
+        return facultyService.getLongestFacultyName();
+    }
 }

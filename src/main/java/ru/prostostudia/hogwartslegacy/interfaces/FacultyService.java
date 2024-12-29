@@ -15,4 +15,7 @@ public interface FacultyService {
     List<Faculty> filterByColor(String color);
     List<Faculty> getAll();
     List<Student> getStudents(Long id);
+
+    // Stream HomeWork
+    String getLongestFacultyName();
 }
