@@ -356,11 +356,78 @@ class StudentControllerTest {
 
         mockMvc.perform(get("/student/average-age-stream")
                         .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$").value(0));
+                .andExpect(status().isNotFound());
 
         verify(studentRepository, times(1)).findAll();
         verify(studentService, times(1)).getStudentAgeAverage();
+    }
+
+    @Test
+    void testPrintStudentsParallel() throws Exception {
+        List<Student> students = List.of(
+                new Student(1L, "Alice", 20),
+                new Student(2L, "Bob", 21),
+                new Student(3L, "Charlie", 22),
+                new Student(4L, "David", 23),
+                new Student(5L, "Eve", 24),
+                new Student(6L, "Frank", 25)
+        );
+
+        when(studentService.getAll()).thenReturn(students);
+
+        mockMvc.perform(get("/student/print-parallel")
+                        .contentType(MediaType.TEXT_PLAIN))
+                .andExpect(status().isOk());
+
+        verify(studentService, times(1)).printStudentsParallel();
+    }
+
+    @Test
+    void testPrintStudentsParallel_NotEnoughStudents() throws Exception {
+        when(studentService.getAll()).thenReturn(List.of(
+                new Student(1L, "Alice", 20),
+                new Student(2L, "Bob", 21)
+        ));
+
+        mockMvc.perform(get("/student/print-parallel")
+                        .contentType(MediaType.TEXT_PLAIN))
+                .andExpect(status().isBadRequest());
+
+        verify(studentService, times(1)).printStudentsParallel();
+    }
+
+    @Test
+    void testPrintStudentsSynchronized() throws Exception {
+        List<Student> students = List.of(
+                new Student(1L, "Alice", 20),
+                new Student(2L, "Bob", 21),
+                new Student(3L, "Charlie", 22),
+                new Student(4L, "David", 23),
+                new Student(5L, "Eve", 24),
+                new Student(6L, "Frank", 25)
+        );
+
+        when(studentService.getAll()).thenReturn(students);
+
+        mockMvc.perform(get("/student/print-synchronized")
+                        .contentType(MediaType.TEXT_PLAIN))
+                .andExpect(status().isOk());
+
+        verify(studentService, times(1)).printStudentsSynchronized();
+    }
+
+    @Test
+    void testPrintStudentsSynchronized_NotEnoughStudents() throws Exception {
+        when(studentService.getAll()).thenReturn(List.of(
+                new Student(1L, "Alice", 20),
+                new Student(2L, "Bob", 21)
+        ));
+
+        mockMvc.perform(get("/student/print-synchronized")
+                        .contentType(MediaType.TEXT_PLAIN))
+                .andExpect(status().isBadRequest());
+
+        verify(studentService, times(1)).printStudentsSynchronized();
     }
 }
 

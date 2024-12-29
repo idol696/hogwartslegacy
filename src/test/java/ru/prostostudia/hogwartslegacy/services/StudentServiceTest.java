@@ -288,4 +288,66 @@ public class StudentServiceTest {
         assertThrows(StudentNotFoundException.class,() -> studentService.getStudentAgeAverage());
         verify(studentRepository, times(1)).findAll();
     }
+
+    @Test
+    void testPrintStudentsParallel() {
+        List<Student> mockStudents = List.of(
+                new Student(1L, "Alice", 18),
+                new Student(2L, "Bob",20),
+                new Student(3L, "Charlie",19),
+                new Student(4L, "David",21),
+                new Student(5L, "Eve",22),
+                new Student(6L, "Frank",30)
+        );
+
+        when(studentRepository.findAll()).thenReturn(mockStudents);
+
+        studentService.printStudentsParallel();
+
+        verify(studentRepository, times(1)).findAll();
+    }
+
+    @Test
+    void testStudentsParallel_NotEnough() {
+        List<Student> mockStudents = List.of(
+                new Student(1L, "Alice", 18),
+                new Student(2L, "Bob",20)
+        );
+
+        when(studentRepository.findAll()).thenReturn(mockStudents);
+
+        assertThrows(StudentIllegalParameterException.class,() -> studentService.printStudentsParallel());
+        verify(studentRepository, times(1)).findAll();
+    }
+
+    @Test
+    void testPrintStudentsSynchronized() {
+        List<Student> mockStudents = List.of(
+                new Student(1L, "Alice", 18),
+                new Student(2L, "Bob",20),
+                new Student(3L, "Charlie",19),
+                new Student(4L, "David",21),
+                new Student(5L, "Eve",22),
+                new Student(6L, "Frank",30)
+        );
+
+        when(studentRepository.findAll()).thenReturn(mockStudents);
+
+        studentService.printStudentsSynchronized();
+
+        verify(studentRepository, times(1)).findAll();
+    }
+
+    @Test
+    void testStudentsSynchronized_NotEnough() {
+        List<Student> mockStudents = List.of(
+                new Student(1L, "Alice",18),
+                new Student(2L, "Bob", 20)
+        );
+
+        when(studentRepository.findAll()).thenReturn(mockStudents);
+
+        assertThrows(StudentIllegalParameterException.class,() -> studentService.printStudentsSynchronized());
+        verify(studentRepository, times(1)).findAll();
+    }
 }
