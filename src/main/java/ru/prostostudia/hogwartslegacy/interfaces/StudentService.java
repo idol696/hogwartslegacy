@@ -23,5 +23,5 @@ public interface StudentService {
 
     // Stream HomeWork
     List<String> getStudentsStartNameA();
-    int getStudentAgeAverageStream();
+    int getStudentAgeAverage();
 }

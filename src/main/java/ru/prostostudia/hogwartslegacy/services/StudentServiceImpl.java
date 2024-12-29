@@ -195,17 +195,13 @@ public class StudentServiceImpl implements StudentService {
     }
 
     @Override
-    public int getStudentAgeAverageStream() {
+    public int getStudentAgeAverage() {
         logger.info("Method getStudentAgeAverageStream invoked to calculate the average age of students.");
 
         double averageAge = studentRepository.findAll().stream()
                 .mapToInt(Student::getAge)
                 .average()
-                .orElse(0);
-
-        if (averageAge == 0) {
-            logger.warn("Average age is 0. It is likely that there are no students in the database.");
-        }
+                .orElseThrow(StudentNotFoundException::new);
 
         logger.debug("Calculated average age of students: {}", averageAge);
         return (int) averageAge;

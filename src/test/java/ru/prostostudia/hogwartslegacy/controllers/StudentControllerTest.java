@@ -345,7 +345,7 @@ class StudentControllerTest {
                 .andExpect(jsonPath("$").value(25));
 
         verify(studentRepository, times(1)).findAll();
-        verify(studentService, times(1)).getStudentAgeAverageStream();
+        verify(studentService, times(1)).getStudentAgeAverage();
     }
 
     @Test
@@ -360,7 +360,7 @@ class StudentControllerTest {
                 .andExpect(jsonPath("$").value(0));
 
         verify(studentRepository, times(1)).findAll();
-        verify(studentService, times(1)).getStudentAgeAverageStream();
+        verify(studentService, times(1)).getStudentAgeAverage();
     }
 }
 

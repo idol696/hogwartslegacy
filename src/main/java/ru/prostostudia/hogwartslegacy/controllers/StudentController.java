@@ -209,6 +209,6 @@ public class StudentController {
             description = "Возвращает средний возраст всех студентов",
             responses = @ApiResponse(responseCode = "200", description = "Средний возраст вычислен"))
     public int getAverageAge() {
-        return studentService.getStudentAgeAverageStream();
+        return studentService.getStudentAgeAverage();
     }
 }
