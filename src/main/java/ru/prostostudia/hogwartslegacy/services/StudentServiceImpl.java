@@ -206,4 +206,64 @@ public class StudentServiceImpl implements StudentService {
         logger.debug("Calculated average age of students: {}", averageAge);
         return (int) averageAge;
     }
+
+    @Override
+    public void printStudentsParallel() {
+        List<Student> students = getAll();
+        if (students.size() < 6) {
+            logger.error("Not enough students to execute parallel printing.");
+            throw new StudentIllegalParameterException("At least 6 students are required.");
+        }
+
+        System.out.println("Printing students in parallel:");
+
+        System.out.println(students.get(0));
+        System.out.println(students.get(1));
+
+        new Thread(() -> {
+            System.out.println(students.get(2));
+            try { // Да простят мне сию вольность, но для демонстрации оставил
+                Thread.sleep(10);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+            System.out.println(students.get(3));
+        }).start();
+
+        new Thread(() -> {
+            System.out.println(students.get(4));
+            System.out.println(students.get(5));
+        }).start();
+
+    }
+
+    @Override
+    public void printStudentsSynchronized() {
+        List<Student> students = getAll();
+        if (students.size() < 6) {
+            logger.error("Not enough students to execute synchronized printing.");
+            throw new StudentIllegalParameterException("At least 6 students are required.");
+        }
+
+        System.out.println("Printing students in synchronized mode:");
+
+        synchronizedPrint(students.get(0));
+        synchronizedPrint(students.get(1));
+
+        new Thread(() -> {
+            synchronizedPrint(students.get(2));
+            synchronizedPrint(students.get(3));
+        }).start();
+
+        new Thread(() -> {
+            synchronizedPrint(students.get(4));
+            synchronizedPrint(students.get(5));
+        }).start();
+    }
+
+    private void synchronizedPrint(Student student) {
+        synchronized (this) {
+            System.out.println(student);
+        }
+    }
 }

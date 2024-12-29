@@ -24,4 +24,8 @@ public interface StudentService {
     // Stream HomeWork
     List<String> getStudentsStartNameA();
     int getStudentAgeAverage();
+
+    // Thread Work
+    void printStudentsParallel();
+    void printStudentsSynchronized();
 }
