@@ -211,4 +211,35 @@ public class StudentController {
     public int getAverageAge() {
         return studentService.getStudentAgeAverage();
     }
+    // Existing endpoints remain unchanged
+
+    /**
+     * Эндпоинт выводит имена студентов в параллельном режиме.
+     *
+     * @return Успешный статус.
+     */
+    @GetMapping("/print-parallel")
+    @Operation(summary = "Вывод имен студентов в параллельном режиме",
+            description = "Выводит первые два имени в основном потоке, третье и четвертое в одном параллельном потоке, пятое и шестое в другом параллельном потоке",
+            responses = {@ApiResponse(responseCode = "200", description = "Имена студентов успешно выведены в консоль"),
+                    @ApiResponse(responseCode = "400", description = "Студентов должно быть не менее 6 ти")})
+    public ResponseEntity<String> printStudentsParallel() {
+        studentService.printStudentsParallel();
+        return ResponseEntity.ok("Names printed in parallel console out.");
+    }
+
+    /**
+     * Эндпоинт выводит имена студентов в синхронном режиме.
+     *
+     * @return Успешный статус.
+     */
+    @GetMapping("/print-synchronized")
+    @Operation(summary = "Вывод имен студентов в синхронном режиме",
+            description = "Выводит первые два имени в основном потоке, третье и четвертое в одном параллельном потоке, пятое и шестое в другом параллельном потоке с синхронизацией",
+            responses = {@ApiResponse(responseCode = "200", description = "Имена студентов успешно выведены"),
+                    @ApiResponse(responseCode = "400", description = "Студентов должно быть не менее 6 ти")})
+    public ResponseEntity<String> printStudentsSynchronized() {
+        studentService.printStudentsSynchronized();
+        return ResponseEntity.ok("Names printed with synchronization console out.");
+    }
 }
